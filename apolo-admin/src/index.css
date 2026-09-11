@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', sans-serif;
+  color: #16233F;
+}
+h1, h2, h3, .font-display {
+  font-family: 'Barlow Condensed', sans-serif;
+}
