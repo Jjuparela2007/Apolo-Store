@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
+import { WishlistProvider } from "./context/WishlistContext";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 
@@ -8,6 +9,7 @@ import Home from "./pages/Home";
 import Category from "./pages/Category";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
+import Favorites from "./pages/Favorites";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -31,22 +33,25 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/categoria/:slug" element={<Category />} />
-              <Route path="/buscar" element={<Category />} />
-              <Route path="/producto/:slug" element={<ProductDetail />} />
-              <Route path="/carrito" element={<Cart />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/registro" element={<Register />} />
-              <Route path="/olvide-contrasena" element={<ForgotPassword />} />
-              <Route path="/restablecer-contrasena" element={<ResetPassword />} />
-              <Route path="/mis-pedidos" element={<MyOrders />} />
-              <Route path="/pedido/:id" element={<OrderConfirmation />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Layout>
+          <WishlistProvider>
+            <Layout>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/categoria/:slug" element={<Category />} />
+                <Route path="/buscar" element={<Category />} />
+                <Route path="/producto/:slug" element={<ProductDetail />} />
+                <Route path="/carrito" element={<Cart />} />
+                <Route path="/favoritos" element={<Favorites />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/registro" element={<Register />} />
+                <Route path="/olvide-contrasena" element={<ForgotPassword />} />
+                <Route path="/restablecer-contrasena" element={<ResetPassword />} />
+                <Route path="/mis-pedidos" element={<MyOrders />} />
+                <Route path="/pedido/:id" element={<OrderConfirmation />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Layout>
+          </WishlistProvider>
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>

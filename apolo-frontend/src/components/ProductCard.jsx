@@ -1,12 +1,25 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { useWishlist } from "../context/WishlistContext";
 
 function formatPrice(value) {
   return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(value);
 }
 
 export default function ProductCard({ product }) {
+  const { isAuthenticated } = useAuth();
+  const { isFavorite, toggleFavorite } = useWishlist();
+  const navigate = useNavigate();
+
   const price = product.offer_price ?? product.base_price;
   const hasDiscount = product.offer_price && product.offer_price < product.base_price;
+  const favorited = isFavorite(product.id);
+
+  const handleToggleFavorite = (e) => {
+    e.preventDefault();
+    if (!isAuthenticated) return navigate("/login", { state: { from: `/producto/${product.slug}` } });
+    toggleFavorite(product.id);
+  };
 
   return (
     <Link
@@ -32,11 +45,13 @@ export default function ProductCard({ product }) {
         )}
         <button
           type="button"
-          onClick={(e) => e.preventDefault()}
-          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center text-apolo-navy hover:text-apolo-blue"
-          aria-label="Agregar a favoritos"
+          onClick={handleToggleFavorite}
+          className={`absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center transition-colors ${
+            favorited ? "text-red-500" : "text-apolo-navy hover:text-apolo-blue"
+          }`}
+          aria-label={favorited ? "Quitar de favoritos" : "Agregar a favoritos"}
         >
-          <HeartIcon />
+          <HeartIcon filled={favorited} />
         </button>
       </div>
 
@@ -56,9 +71,9 @@ export default function ProductCard({ product }) {
   );
 }
 
-function HeartIcon() {
+function HeartIcon({ filled }) {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
       <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8Z" />
     </svg>
   );

@@ -3,6 +3,7 @@ import { useState } from "react";
 import Logo from "./Logo";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
+import { useWishlist } from "../context/WishlistContext";
 
 const NAV_LINKS = [
   { to: "/", label: "Inicio", end: true },
@@ -14,6 +15,7 @@ const NAV_LINKS = [
 export default function Header() {
   const { isAuthenticated, customer, logout } = useAuth();
   const { itemCount } = useCart();
+  const { items: wishlistItems } = useWishlist();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
 
@@ -79,9 +81,14 @@ export default function Header() {
             </Link>
           )}
 
-          <button type="button" className="text-white/80 hover:text-white" aria-label="Favoritos">
+          <Link to="/favoritos" className="relative text-white/80 hover:text-white" aria-label="Favoritos">
             <HeartIcon />
-          </button>
+            {wishlistItems.length > 0 && (
+              <span className="absolute -top-2 -right-2 bg-apolo-blue text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                {wishlistItems.length}
+              </span>
+            )}
+          </Link>
 
           <Link to="/carrito" className="relative text-white/80 hover:text-white" aria-label="Carrito">
             <CartIcon />
