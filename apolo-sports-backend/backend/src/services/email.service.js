@@ -115,4 +115,23 @@ async function sendOrderConfirmationEmail({ to, order }) {
   return sendMail({ to, subject: `Confirmación de tu pedido ${order.order_number} — Apolo Sports`, html });
 }
 
-module.exports = { sendMail, sendPasswordResetEmail, sendOrderConfirmationEmail };
+async function sendOrderStatusUpdateEmail({ to, order, status }) {
+  const STATUS_LABELS = {
+    processing: "está en preparación",
+    shipped: "fue enviado",
+    delivered: "fue entregado",
+    cancelled: "fue cancelado",
+    refunded: "fue reembolsado",
+  };
+  const statusText = STATUS_LABELS[status] || `cambió a "${status}"`;
+
+  const bodyHtml = `
+    <h2 style="margin:0 0 12px; font-size:20px; color:#0A1830;">Actualización de tu pedido</h2>
+    <p style="margin:0;">Tu pedido <strong style="color:#0A1830;">${order.order_number}</strong> ${statusText}.</p>
+  `;
+  const html = emailLayout({ preheader: `Tu pedido ${order.order_number} ${statusText}`, bodyHtml });
+
+  return sendMail({ to, subject: `Tu pedido ${order.order_number} ${statusText} — Apolo Sports`, html });
+}
+
+module.exports = { sendMail, sendPasswordResetEmail, sendOrderConfirmationEmail, sendOrderStatusUpdateEmail };

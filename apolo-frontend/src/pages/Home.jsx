@@ -27,9 +27,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 py-16 md:py-24 relative z-10">
           <p className="font-display tracking-wide text-apolo-blue-light text-sm mb-2">APOLO SPORTS</p>
           <h1 className="font-display font-bold text-5xl md:text-7xl leading-[0.95] mb-4">
-            EQUIPA TU
+            SUPERA TUS
             <br />
-            <span className="text-apolo-blue-light">MEJOR VERSIÓN</span>
+            <span className="text-apolo-blue-light">LIMITES</span>
           </h1>
           <p className="text-white/70 max-w-md mb-8">Rendimiento, estilo y actitud en cada movimiento.</p>
 

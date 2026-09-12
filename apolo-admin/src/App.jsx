@@ -3,6 +3,8 @@ import { AdminAuthProvider } from "./context/AdminAuthContext";
 import RequireAuth from "./components/RequireAuth";
 
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Categories from "./pages/Categories";
 import Products from "./pages/Products";
@@ -16,6 +18,8 @@ export default function App() {
       <AdminAuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/olvide-contrasena" element={<ForgotPassword />} />
+          <Route path="/restablecer-contrasena" element={<ResetPassword />} />
           <Route path="/" element={<RequireAuth><Dashboard /></RequireAuth>} />
           <Route path="/categorias" element={<RequireAuth><Categories /></RequireAuth>} />
           <Route path="/productos" element={<RequireAuth><Products /></RequireAuth>} />

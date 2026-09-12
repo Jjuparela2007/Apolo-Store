@@ -48,7 +48,10 @@ const forgotPassword = asyncHandler(async (req, res) => {
   const user = await AdminUser.findByEmail(rawEmail.trim().toLowerCase());
   if (user) {
     const token = await PasswordReset.createToken({ accountType: "admin", accountId: user.id });
-    const resetUrl = `${process.env.FRONTEND_URL}/admin/restablecer-contrasena?token=${token}`;
+    // El panel admin es una app separada del sitio público, con su propia URL base
+    // (ej. http://localhost:5174 en desarrollo) — nunca comparte FRONTEND_URL.
+    const adminUrl = process.env.ADMIN_URL || "http://localhost:5174";
+    const resetUrl = `${adminUrl}/restablecer-contrasena?token=${token}`;
     await email.sendPasswordResetEmail({ to: user.email, resetUrl });
   }
 

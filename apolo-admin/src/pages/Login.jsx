@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Logo from "../components/Logo";
 import { useAdminAuth } from "../context/AdminAuthContext";
 
@@ -85,6 +85,12 @@ export default function Login() {
                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                 </button>
               </div>
+            </div>
+
+            <div className="text-right">
+              <Link to="/olvide-contrasena" className="text-sm text-apolo-blue-light hover:underline">
+                Olvidé mi contraseña
+              </Link>
             </div>
 
             {error && <p className="text-sm text-red-400">{error}</p>}

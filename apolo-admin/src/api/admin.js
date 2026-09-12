@@ -3,6 +3,7 @@ import client from "./client";
 // Auth
 export const adminLogin = (data) => client.post("/admin/auth/login", data).then((r) => r.data);
 export const adminForgotPassword = (email) => client.post("/admin/auth/forgot-password", { email }).then((r) => r.data);
+export const adminResetPassword = (data) => client.post("/admin/auth/reset-password", data).then((r) => r.data);
 
 // Categorías
 export const getCategories = () => client.get("/categories").then((r) => r.data.categories);
@@ -37,3 +38,4 @@ export const getLowStock = () => client.get("/admin/inventory/low-stock").then((
 // Órdenes
 export const getOrders = (params = {}) => client.get("/admin/orders", { params }).then((r) => r.data.orders);
 export const getOrder = (id) => client.get(`/admin/orders/${id}`).then((r) => r.data.order);
+export const updateOrderStatus = (id, status) => client.put(`/admin/orders/${id}/status`, { status }).then((r) => r.data.order);

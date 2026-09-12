@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getOrder } from "../api/admin";
+import { getOrder, updateOrderStatus } from "../api/admin";
 
 const STATUS_LABELS = {
   pending_payment: "Pago pendiente", paid: "Pagado", processing: "En preparación",
   shipped: "Enviado", delivered: "Entregado", cancelled: "Cancelado", refunded: "Reembolsado",
 };
+const STATUS_OPTIONS = Object.keys(STATUS_LABELS);
 
 function formatPrice(value) {
   return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(value);
@@ -15,13 +16,38 @@ export default function OrderDetail() {
   const { id } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    getOrder(id).then(setOrder).finally(() => setLoading(false));
+    getOrder(id).then((o) => { setOrder(o); setSelectedStatus(o.status); }).finally(() => setLoading(false));
   }, [id]);
 
   if (loading) return <p className="text-apolo-steel">Cargando…</p>;
   if (!order) return <p className="text-apolo-steel">Pedido no encontrado.</p>;
+
+  const handleSaveStatus = async () => {
+    if (selectedStatus === order.status) return;
+    // Cancelar libera automáticamente el stock reservado — vale la pena confirmar antes.
+    if (selectedStatus === "cancelled" && !confirm("Al cancelar, el stock reservado de este pedido se libera automáticamente. ¿Continuar?")) {
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    setSaved(false);
+    try {
+      const updated = await updateOrderStatus(order.id, selectedStatus);
+      setOrder(updated);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      setError(err.response?.data?.error || "No pudimos actualizar el estado.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div>
@@ -58,6 +84,28 @@ export default function OrderDetail() {
         </div>
 
         <div className="space-y-4">
+          <div className="bg-white rounded-xl p-6">
+            <h2 className="font-medium text-apolo-navy mb-3">Estado del pedido</h2>
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="w-full border border-apolo-navy/20 rounded-lg px-3 py-2 text-sm mb-3"
+            >
+              {STATUS_OPTIONS.map((s) => (
+                <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+              ))}
+            </select>
+            <button
+              onClick={handleSaveStatus}
+              disabled={saving || selectedStatus === order.status}
+              className="w-full bg-apolo-navy hover:bg-apolo-blue disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold py-2.5 rounded-lg transition-colors"
+            >
+              {saving ? "Guardando…" : "Actualizar estado"}
+            </button>
+            {saved && <p className="text-sm text-green-600 mt-2">✓ Estado actualizado y cliente notificado</p>}
+            {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
+          </div>
+
           <div className="bg-white rounded-xl p-6">
             <h2 className="font-medium text-apolo-navy mb-2">Cliente</h2>
             <p className="text-sm text-apolo-steel">{order.customer_email}</p>
