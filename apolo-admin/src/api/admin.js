@@ -7,6 +7,8 @@ export const adminForgotPassword = (email) => client.post("/admin/auth/forgot-pa
 // Categorías
 export const getCategories = () => client.get("/categories").then((r) => r.data.categories);
 export const createCategory = (data) => client.post("/categories", data).then((r) => r.data.category);
+export const updateCategory = (id, data) => client.put(`/categories/${id}`, data).then((r) => r.data.category);
+export const deleteCategory = (id) => client.delete(`/categories/${id}`);
 
 // Productos
 export const getProducts = (params = {}) => client.get("/products", { params }).then((r) => r.data);

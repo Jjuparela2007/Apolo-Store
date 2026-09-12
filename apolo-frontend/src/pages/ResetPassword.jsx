@@ -9,17 +9,20 @@ export default function ResetPassword() {
 
   const [newPassword, setNewPassword] = useState("");
   const [error, setError] = useState(null);
+  const [expired, setExpired] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setExpired(false);
     try {
       await resetPassword({ token, newPassword });
       navigate("/login");
     } catch (err) {
       setError(err.response?.data?.error || "El enlace es inválido o ya expiró.");
+      setExpired(true); // cualquier error en este paso significa que el token ya no sirve
     } finally {
       setLoading(false);
     }
@@ -49,13 +52,31 @@ export default function ResetPassword() {
           className="w-full border border-apolo-navy/20 rounded-lg px-3 py-2"
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-apolo-blue hover:bg-apolo-blue-light disabled:opacity-50 text-white font-semibold py-3 rounded-full transition-colors"
-        >
-          {loading ? "Guardando…" : "Guardar contraseña"}
-        </button>
+
+        {expired ? (
+          <div className="space-y-2">
+            <Link
+              to="/olvide-contrasena"
+              className="block text-center w-full bg-apolo-blue hover:bg-apolo-blue-light text-white font-semibold py-3 rounded-full transition-colors"
+            >
+              Solicitar un enlace nuevo
+            </Link>
+            <Link
+              to="/login"
+              className="block text-center w-full text-apolo-steel text-sm hover:text-apolo-navy py-2"
+            >
+              Ir a iniciar sesión
+            </Link>
+          </div>
+        ) : (
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-apolo-blue hover:bg-apolo-blue-light disabled:opacity-50 text-white font-semibold py-3 rounded-full transition-colors"
+          >
+            {loading ? "Guardando…" : "Guardar contraseña"}
+          </button>
+        )}
       </form>
     </div>
   );

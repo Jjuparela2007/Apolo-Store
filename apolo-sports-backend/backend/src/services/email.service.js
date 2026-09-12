@@ -9,6 +9,49 @@ function getTransporter() {
   });
 }
 
+// Plantilla base: envoltorio con la marca de Apolo Sports. Los estilos van en línea
+// (inline) a propósito — la mayoría de clientes de correo (Gmail incluido) ignoran
+// o recortan las etiquetas <style> en el <head>.
+function emailLayout({ preheader = "", bodyHtml, ctaText, ctaUrl }) {
+  return `
+  <div style="background-color:#F4F7FB; padding:32px 16px; font-family:Arial,Helvetica,sans-serif;">
+    <div style="display:none; max-height:0; overflow:hidden;">${preheader}</div>
+    <table role="presentation" width="100%" style="max-width:480px; margin:0 auto; background:#ffffff; border-radius:16px; overflow:hidden; border:1px solid #E4E9F2;">
+      <tr>
+        <td style="background-color:#0A1830; padding:28px 32px; text-align:center;">
+          <span style="font-family:Arial,Helvetica,sans-serif; font-weight:800; font-size:22px; letter-spacing:1px; color:#ffffff;">
+            APOLO <span style="color:#4FA0FF;">SPORTS</span>
+          </span>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:32px; color:#16233F; font-size:15px; line-height:1.6;">
+          ${bodyHtml}
+          ${ctaUrl ? `
+          <table role="presentation" style="margin:28px 0 8px;">
+            <tr>
+              <td style="border-radius:999px; background-color:#1E7FE8;">
+                <a href="${ctaUrl}" style="display:inline-block; padding:13px 28px; color:#ffffff; text-decoration:none; font-weight:bold; font-size:14px; border-radius:999px;">
+                  ${ctaText}
+                </a>
+              </td>
+            </tr>
+          </table>
+          <p style="font-size:12px; color:#5B6B85; word-break:break-all;">
+            Si el botón no funciona, copia y pega este enlace en tu navegador:<br/>
+            <a href="${ctaUrl}" style="color:#1E7FE8;">${ctaUrl}</a>
+          </p>` : ""}
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:20px 32px; background-color:#F4F7FB; text-align:center; font-size:12px; color:#5B6B85;">
+          © ${new Date().getFullYear()} Apolo Sports · Rendimiento, estilo y actitud en cada movimiento.
+        </td>
+      </tr>
+    </table>
+  </div>`;
+}
+
 async function sendMail({ to, subject, html }) {
   // Si no hay credenciales SMTP configuradas (ej. en desarrollo local sin cuenta de correo),
   // no truena la app — solo lo deja registrado en consola para poder seguir probando el flujo.
@@ -22,32 +65,54 @@ async function sendMail({ to, subject, html }) {
 }
 
 async function sendPasswordResetEmail({ to, resetUrl }) {
-  return sendMail({
-    to,
-    subject: "Recupera tu contraseña — Apolo Sports",
-    html: `
-      <p>Recibimos una solicitud para restablecer tu contraseña.</p>
-      <p><a href="${resetUrl}">Haz clic aquí para crear una nueva contraseña</a></p>
-      <p>Este enlace vence en 30 minutos. Si no fuiste tú, puedes ignorar este correo.</p>
+  const html = emailLayout({
+    preheader: "Restablece tu contraseña de Apolo Sports",
+    bodyHtml: `
+      <h2 style="margin:0 0 12px; font-size:20px; color:#0A1830;">Recupera tu contraseña</h2>
+      <p style="margin:0 0 4px;">Recibimos una solicitud para restablecer tu contraseña.</p>
+      <p style="margin:0; color:#5B6B85; font-size:13px;">Este enlace vence en 30 minutos. Si no fuiste tú, puedes ignorar este correo con tranquilidad.</p>
     `,
+    ctaText: "Crear nueva contraseña",
+    ctaUrl: resetUrl,
   });
+
+  return sendMail({ to, subject: "Recupera tu contraseña — Apolo Sports", html });
 }
 
 async function sendOrderConfirmationEmail({ to, order }) {
+  const formatPrice = (v) =>
+    new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(v);
+
   const itemsHtml = order.items
-    .map((i) => `<li>${i.quantity} x ${i.product_name} (talla ${i.size}, ${i.color}) — $${i.unit_price}</li>`)
+    .map(
+      (i) => `
+      <tr>
+        <td style="padding:10px 0; border-bottom:1px solid #E4E9F2;">
+          <span style="font-weight:bold; color:#0A1830;">${i.product_name}</span><br/>
+          <span style="font-size:13px; color:#5B6B85;">Talla ${i.size} · ${i.color} · x${i.quantity}</span>
+        </td>
+        <td style="padding:10px 0; border-bottom:1px solid #E4E9F2; text-align:right; font-weight:bold; color:#0A1830;">
+          ${formatPrice(i.unit_price * i.quantity)}
+        </td>
+      </tr>`
+    )
     .join("");
 
-  return sendMail({
-    to,
-    subject: `Confirmación de tu pedido ${order.order_number} — Apolo Sports`,
-    html: `
-      <p>¡Gracias por tu compra! Tu pedido <strong>${order.order_number}</strong> fue confirmado.</p>
-      <ul>${itemsHtml}</ul>
-      <p><strong>Total: $${order.total}</strong></p>
-      <p>Te avisaremos cuando tu pedido sea despachado.</p>
-    `,
-  });
+  const bodyHtml = `
+    <h2 style="margin:0 0 4px; font-size:20px; color:#0A1830;">¡Gracias por tu compra!</h2>
+    <p style="margin:0 0 20px; color:#5B6B85;">Tu pedido <strong style="color:#0A1830;">${order.order_number}</strong> fue confirmado.</p>
+    <table role="presentation" width="100%" style="border-collapse:collapse;">
+      ${itemsHtml}
+      <tr>
+        <td style="padding:14px 0 0; font-weight:bold; color:#0A1830;">Total</td>
+        <td style="padding:14px 0 0; text-align:right; font-weight:bold; color:#0A1830; font-size:16px;">${formatPrice(order.total)}</td>
+      </tr>
+    </table>
+    <p style="margin:20px 0 0; color:#5B6B85; font-size:13px;">Te avisaremos por aquí mismo cuando tu pedido sea despachado.</p>
+  `;
+
+  const html = emailLayout({ preheader: `Confirmación de tu pedido ${order.order_number}`, bodyHtml });
+  return sendMail({ to, subject: `Confirmación de tu pedido ${order.order_number} — Apolo Sports`, html });
 }
 
 module.exports = { sendMail, sendPasswordResetEmail, sendOrderConfirmationEmail };

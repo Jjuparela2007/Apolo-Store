@@ -12,4 +12,14 @@ const createCategory = asyncHandler(async (req, res) => {
   res.status(201).json({ category });
 });
 
-module.exports = { listCategories, createCategory };
+const updateCategory = asyncHandler(async (req, res) => {
+  const category = await Category.update(req.params.id, req.body);
+  res.json({ category });
+});
+
+const deleteCategory = asyncHandler(async (req, res) => {
+  await Category.remove(req.params.id);
+  res.status(204).send();
+});
+
+module.exports = { listCategories, createCategory, updateCategory, deleteCategory };

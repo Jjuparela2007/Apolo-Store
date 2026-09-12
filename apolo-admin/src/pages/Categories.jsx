@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getCategories, createCategory } from "../api/admin";
+import { getCategories, createCategory, updateCategory, deleteCategory } from "../api/admin";
 
 function slugify(text) {
   return text.toLowerCase().trim()
@@ -13,6 +13,11 @@ export default function Categories() {
   const [parentId, setParentId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Categoría que se está editando en línea (null = ninguna)
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({ name: "", parentId: "" });
+  const [rowError, setRowError] = useState(null);
 
   const load = () => getCategories().then(setCategories).finally(() => setLoading(false));
   useEffect(() => { load(); }, []);
@@ -32,6 +37,42 @@ export default function Categories() {
     }
   };
 
+  const startEdit = (cat) => {
+    setEditingId(cat.id);
+    setEditForm({ name: cat.name, parentId: cat.parent_id || "" });
+    setRowError(null);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setRowError(null);
+  };
+
+  const saveEdit = async (id) => {
+    setRowError(null);
+    try {
+      await updateCategory(id, {
+        name: editForm.name,
+        slug: slugify(editForm.name),
+        parentId: editForm.parentId || null,
+      });
+      setEditingId(null);
+      load();
+    } catch (err) {
+      setRowError(err.response?.data?.error || "No pudimos guardar los cambios.");
+    }
+  };
+
+  const handleDelete = async (cat) => {
+    if (!confirm(`¿Borrar la categoría "${cat.name}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      await deleteCategory(cat.id);
+      load();
+    } catch (err) {
+      alert(err.response?.data?.error || "No pudimos borrar la categoría.");
+    }
+  };
+
   return (
     <div>
       <h1 className="font-display font-bold text-3xl text-apolo-navy mb-6">Categorías</h1>
@@ -47,16 +88,53 @@ export default function Categories() {
                   <th className="pb-2">Nombre</th>
                   <th className="pb-2">Slug</th>
                   <th className="pb-2">Categoría padre</th>
+                  <th className="pb-2"></th>
                 </tr>
               </thead>
               <tbody>
                 {categories.map((c) => (
-                  <tr key={c.id} className="border-b border-apolo-navy/5">
-                    <td className="py-2 font-medium text-apolo-navy">{c.name}</td>
-                    <td className="py-2 text-apolo-steel">{c.slug}</td>
-                    <td className="py-2 text-apolo-steel">
-                      {categories.find((p) => p.id === c.parent_id)?.name || "—"}
-                    </td>
+                  <tr key={c.id} className="border-b border-apolo-navy/5 align-top">
+                    {editingId === c.id ? (
+                      <>
+                        <td className="py-2 pr-2">
+                          <input
+                            value={editForm.name}
+                            onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                            className="w-full border border-apolo-navy/20 rounded px-2 py-1 text-sm"
+                          />
+                        </td>
+                        <td className="py-2 text-apolo-steel">{slugify(editForm.name)}</td>
+                        <td className="py-2 pr-2">
+                          <select
+                            value={editForm.parentId}
+                            onChange={(e) => setEditForm({ ...editForm, parentId: e.target.value })}
+                            className="w-full border border-apolo-navy/20 rounded px-2 py-1 text-sm"
+                          >
+                            <option value="">Raíz (sin padre)</option>
+                            {rootCategories.filter((r) => r.id !== c.id).map((r) => (
+                              <option key={r.id} value={r.id}>{r.name}</option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="py-2 text-right whitespace-nowrap">
+                          <button onClick={() => saveEdit(c.id)} className="text-green-600 text-xs hover:underline mr-3">Guardar</button>
+                          <button onClick={cancelEdit} className="text-apolo-steel text-xs hover:underline">Cancelar</button>
+                          {rowError && <p className="text-xs text-red-600 mt-1">{rowError}</p>}
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="py-2 font-medium text-apolo-navy">{c.name}</td>
+                        <td className="py-2 text-apolo-steel">{c.slug}</td>
+                        <td className="py-2 text-apolo-steel">
+                          {categories.find((p) => p.id === c.parent_id)?.name || "—"}
+                        </td>
+                        <td className="py-2 text-right whitespace-nowrap">
+                          <button onClick={() => startEdit(c)} className="text-apolo-blue text-xs hover:underline mr-3">Editar</button>
+                          <button onClick={() => handleDelete(c)} className="text-red-600 text-xs hover:underline">Eliminar</button>
+                        </td>
+                      </>
+                    )}
                   </tr>
                 ))}
               </tbody>

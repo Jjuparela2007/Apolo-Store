@@ -30,7 +30,15 @@ export default function MyOrders() {
     <div className="max-w-3xl mx-auto px-6 py-10">
       <h1 className="font-display font-bold text-3xl text-apolo-navy mb-6">Mis pedidos</h1>
       {orders.length === 0 ? (
-        <p className="text-apolo-steel">Todavía no tienes pedidos.</p>
+        <div className="text-center py-16 border border-dashed border-apolo-navy/15 rounded-xl">
+          <p className="text-apolo-steel mb-4">Todavía no tienes pedidos.</p>
+          <Link
+            to="/categoria/hombre"
+            className="inline-block bg-apolo-blue hover:bg-apolo-blue-light text-white font-semibold px-6 py-3 rounded-full transition-colors"
+          >
+            Ir a pedir
+          </Link>
+        </div>
       ) : (
         <div className="space-y-3">
           {orders.map((order) => (
