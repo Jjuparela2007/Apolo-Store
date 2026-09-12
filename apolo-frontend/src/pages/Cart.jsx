@@ -3,9 +3,31 @@ import { useState } from "react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { createOrder } from "../api/cart";
+import { getCheckoutSignature } from "../api/payments";
 
 function formatPrice(value) {
   return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(value);
+}
+
+// Abre el widget de pago de Wompi. La confirmación real del pago SIEMPRE llega
+// después por el webhook al backend — este callback solo nos dice que el cliente
+// terminó de interactuar con el widget (aprobado, rechazado, o simplemente lo cerró),
+// nunca hay que confiar en esto para marcar la orden como pagada.
+function openWompiWidget({ signature, reference, amountInCents, publicKey, onFinish }) {
+  if (!window.WidgetCheckout) {
+    onFinish({ error: "No pudimos cargar la pasarela de pago. Revisa tu conexión e intenta de nuevo." });
+    return;
+  }
+
+  const checkout = new window.WidgetCheckout({
+    currency: "COP",
+    amountInCents,
+    reference,
+    publicKey,
+    signature: { integrity: signature },
+  });
+
+  checkout.open((result) => onFinish({ transaction: result?.transaction }));
 }
 
 export default function Cart() {
@@ -44,9 +66,22 @@ export default function Cart() {
     setSubmitting(true);
     setError(null);
     try {
+      // 1. Crear la orden — esto ya reserva el stock del lado del backend.
       const order = await createOrder(form);
       await refresh();
-      navigate(`/pedido/${order.id}`);
+
+      // 2. Pedir la firma de integridad para poder abrir el widget con este monto exacto.
+      const { signature, reference, amountInCents, publicKey } = await getCheckoutSignature(order.id);
+
+      // 3. Abrir el widget. Pase lo que pase ahí, llevamos al cliente a ver el estado
+      //    real de su orden — el webhook es quien decide si quedó pagada.
+      openWompiWidget({
+        signature, reference, amountInCents, publicKey,
+        onFinish: ({ error: widgetError }) => {
+          if (widgetError) setError(widgetError);
+          navigate(`/pedido/${order.id}`);
+        },
+      });
     } catch (err) {
       setError(err.response?.data?.error || "No pudimos crear tu pedido. Intenta de nuevo.");
     } finally {

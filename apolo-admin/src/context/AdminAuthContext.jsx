@@ -26,8 +26,16 @@ export function AdminAuthProvider({ children }) {
     setAdmin(null);
   }, []);
 
+  // Cuando el admin actualiza su perfil (nombre/correo), el backend firma un token
+  // nuevo (el correo va dentro del JWT) — esto lo guarda sin pasar por login de nuevo.
+  const updateSession = useCallback((token, user) => {
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    setAdmin(user);
+  }, []);
+
   return (
-    <AdminAuthContext.Provider value={{ admin, isAuthenticated: !!admin, login, logout }}>
+    <AdminAuthContext.Provider value={{ admin, isAuthenticated: !!admin, login, logout, updateSession }}>
       {children}
     </AdminAuthContext.Provider>
   );

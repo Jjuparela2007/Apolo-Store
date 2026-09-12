@@ -11,6 +11,8 @@ import Products from "./pages/Products";
 import ProductForm from "./pages/ProductForm";
 import Orders from "./pages/Orders";
 import OrderDetail from "./pages/OrderDetail";
+import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
 
 export default function App() {
   return (
@@ -27,6 +29,8 @@ export default function App() {
           <Route path="/productos/:id" element={<RequireAuth><ProductForm /></RequireAuth>} />
           <Route path="/pedidos" element={<RequireAuth><Orders /></RequireAuth>} />
           <Route path="/pedidos/:id" element={<RequireAuth><OrderDetail /></RequireAuth>} />
+          <Route path="/reportes" element={<RequireAuth><Reports /></RequireAuth>} />
+          <Route path="/configuracion" element={<RequireAuth><Settings /></RequireAuth>} />
         </Routes>
       </AdminAuthProvider>
     </BrowserRouter>

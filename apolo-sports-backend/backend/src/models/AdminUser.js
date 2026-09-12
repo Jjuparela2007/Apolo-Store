@@ -25,6 +25,17 @@ const AdminUser = {
   async updatePassword(id, passwordHash) {
     await db.query(`UPDATE admin_users SET password_hash = ? WHERE id = ?`, [passwordHash, id]);
   },
+
+  async updateProfile(id, { fullName, email }) {
+    const fields = [];
+    const values = [];
+    if (fullName !== undefined) { fields.push("full_name = ?"); values.push(fullName); }
+    if (email !== undefined) { fields.push("email = ?"); values.push(email); }
+    if (fields.length === 0) return this.findById(id);
+
+    await db.query(`UPDATE admin_users SET ${fields.join(", ")} WHERE id = ?`, [...values, id]);
+    return this.findById(id);
+  },
 };
 
 module.exports = AdminUser;

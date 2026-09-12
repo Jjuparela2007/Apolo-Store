@@ -12,6 +12,7 @@ const cartRoutes = require("./routes/cart.routes");
 const wishlistRoutes = require("./routes/wishlist.routes");
 const orderRoutes = require("./routes/order.routes");
 const adminOrderRoutes = require("./routes/adminOrder.routes");
+const reportsRoutes = require("./routes/reports.routes");
 const paymentRoutes = require("./routes/payment.routes");
 const { errorHandler } = require("./middleware/error.middleware");
 
@@ -56,6 +57,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/admin/auth", adminAuthRoutes);
 app.use("/api/admin/inventory", inventoryRoutes);
 app.use("/api/admin/orders", adminOrderRoutes);
+app.use("/api/admin/reports", reportsRoutes);
 
 app.use((req, res) => res.status(404).json({ error: "Ruta no encontrada" }));
 app.use(errorHandler);

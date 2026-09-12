@@ -23,6 +23,18 @@ export default function OrderConfirmation() {
 
   useEffect(() => {
     getOrder(id).then(setOrder).finally(() => setLoading(false));
+
+    // El webhook de Wompi puede tardar unos segundos en llegar y actualizar el
+    // estado — refresca solo cada pocos segundos mientras siga en pago pendiente,
+    // sin que el cliente tenga que recargar la página a mano.
+    const interval = setInterval(() => {
+      getOrder(id).then((o) => {
+        setOrder(o);
+        if (o.status !== "pending_payment") clearInterval(interval);
+      });
+    }, 4000);
+
+    return () => clearInterval(interval);
   }, [id]);
 
   if (loading) return <p className="text-center py-24 text-apolo-steel">Cargando pedido…</p>;
@@ -36,8 +48,8 @@ export default function OrderConfirmation() {
           Pedido <span className="font-medium text-apolo-navy">{order.order_number}</span> — {STATUS_LABELS[order.status]}
         </p>
         {order.status === "pending_payment" && (
-          <p className="text-sm text-amber-600 mt-2">
-            El widget de pago con Wompi se integra en el siguiente paso del proyecto. Por ahora la orden queda reservada.
+          <p className="text-sm text-apolo-steel mt-2">
+            Estamos confirmando tu pago. Esta página se actualiza sola en cuanto quede lista.
           </p>
         )}
       </div>
