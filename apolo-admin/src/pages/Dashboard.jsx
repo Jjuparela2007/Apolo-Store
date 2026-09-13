@@ -160,8 +160,15 @@ export default function Dashboard() {
             </thead>
             <tbody>
               {recentOrders.map((o) => (
-                <tr key={o.id} className="border-b border-apolo-navy/5">
-                  <td className="py-2 font-medium text-apolo-navy">{o.order_number}</td>
+                <tr
+                  key={o.id}
+                  className="border-b border-apolo-navy/5 hover:bg-apolo-ice/40 cursor-pointer"
+                >
+                  <td className="py-2 font-medium text-apolo-navy">
+                    <Link to={`/pedidos/${o.id}`} className="hover:text-apolo-blue hover:underline">
+                      {o.order_number}
+                    </Link>
+                  </td>
                   <td className="py-2 text-apolo-steel">{new Date(o.created_at).toLocaleDateString("es-CO")}</td>
                   <td className="py-2">{formatPrice(o.total)}</td>
                   <td className="py-2">
