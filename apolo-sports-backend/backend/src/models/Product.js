@@ -57,7 +57,7 @@ const Product = {
        FROM products p
        JOIN categories c ON c.id = p.category_id
        ${whereClause}
-       ORDER BY p.created_at DESC
+       ORDER BY (p.status = 'archived') ASC, p.created_at DESC
        LIMIT ? OFFSET ?`,
       [...params, safeLimit, offset]
     );
