@@ -33,7 +33,7 @@ CREATE TABLE products (
   description   TEXT,
   base_price    DECIMAL(10,2) NOT NULL,
   offer_price   DECIMAL(10,2) NULL,               -- precio de oferta, opcional
-  sku           VARCHAR(50) NOT NULL UNIQUE,        -- SKU a nivel producto (mockup lo maneja así en el form simple)
+  sku           VARCHAR(100) NOT NULL UNIQUE,        -- SKU a nivel producto (mockup lo maneja así en el form simple)
   featured      BOOLEAN NOT NULL DEFAULT FALSE,     -- "Producto Destacado" del mockup
   taxable       BOOLEAN NOT NULL DEFAULT FALSE,     -- "Impuesto Aplicable"
   visibility    ENUM('store_and_search','search_only','hidden') NOT NULL DEFAULT 'store_and_search',
