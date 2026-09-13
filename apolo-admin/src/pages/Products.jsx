@@ -12,6 +12,12 @@ const STATUS_STYLES = {
   archived: "bg-gray-100 text-gray-500",
 };
 
+const STATUS_LABELS = {
+  published: "Publicado",
+  draft: "Borrador",
+  archived: "Archivado",
+};
+
 export default function Products() {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
@@ -116,7 +122,7 @@ export default function Products() {
                     </td>
                     <td className="p-4">
                       <span className={`text-xs font-medium px-2 py-1 rounded-full ${STATUS_STYLES[p.status] || ""}`}>
-                        {p.status}
+                        {STATUS_LABELS[p.status] || p.status}
                       </span>
                     </td>
                     <td className="p-4 text-right space-x-3">
