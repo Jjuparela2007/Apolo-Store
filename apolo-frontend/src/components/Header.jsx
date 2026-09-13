@@ -18,10 +18,23 @@ export default function Header() {
   const { items: wishlistItems } = useWishlist();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [confirmingLogout, setConfirmingLogout] = useState(false);
+  const [farewellName, setFarewellName] = useState(null);
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (search.trim()) navigate(`/buscar?q=${encodeURIComponent(search.trim())}`);
+  };
+
+  const handleConfirmLogout = () => {
+    const name = customer?.fullName;
+    logout();
+    setConfirmingLogout(false);
+    setFarewellName(name);
+    setTimeout(() => {
+      setFarewellName(null);
+      navigate("/");
+    }, 2500);
   };
 
   return (
@@ -73,7 +86,9 @@ export default function Header() {
                 <div className="px-4 py-2 border-b text-apolo-steel truncate">{customer?.fullName}</div>
                 <Link to="/mi-cuenta" className="block px-4 py-2 hover:bg-apolo-ice">Mi cuenta</Link>
                 <Link to="/mis-pedidos" className="block px-4 py-2 hover:bg-apolo-ice">Mis pedidos</Link>
-                <button onClick={logout} className="w-full text-left px-4 py-2 hover:bg-apolo-ice">Cerrar sesión</button>
+                <button onClick={() => setConfirmingLogout(true)} className="w-full text-left px-4 py-2 hover:bg-apolo-ice">
+                  Cerrar sesión
+                </button>
               </div>
             </div>
           ) : (
@@ -99,6 +114,43 @@ export default function Header() {
           </Link>
         </div>
       </div>
+
+      {confirmingLogout && (
+        <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center px-4">
+          <div className="bg-white text-apolo-navy rounded-2xl p-6 max-w-sm w-full text-center">
+            <h2 className="font-display font-bold text-xl mb-2">¿Cerrar sesión?</h2>
+            <p className="text-sm text-apolo-steel mb-6">
+              ¿Estás seguro de que quieres salir de tu cuenta{customer?.fullName ? `, ${customer.fullName}` : ""}?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmingLogout(false)}
+                className="flex-1 border border-apolo-navy/20 text-apolo-navy font-semibold py-2.5 rounded-full hover:bg-apolo-ice transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmLogout}
+                className="flex-1 bg-apolo-blue hover:bg-apolo-blue-light text-white font-semibold py-2.5 rounded-full transition-colors"
+              >
+                Sí, cerrar sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {farewellName && (
+        <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center px-4">
+          <div className="bg-white text-apolo-navy rounded-2xl p-8 max-w-sm w-full text-center">
+            <div className="w-14 h-14 rounded-full bg-apolo-blue/10 text-apolo-blue flex items-center justify-center mx-auto mb-4">
+              <WaveIcon />
+            </div>
+            <h2 className="font-display font-bold text-2xl mb-2">¡Vuelve pronto, {farewellName}!</h2>
+            <p className="text-sm text-apolo-steel">Cerraste sesión correctamente.</p>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
@@ -131,4 +183,14 @@ function CartIcon() {
       <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
     </svg>
   );
-} 
+}
+function WaveIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0" />
+      <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2" />
+      <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8" />
+      <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
+    </svg>
+  );
+}
