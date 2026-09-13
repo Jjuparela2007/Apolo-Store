@@ -21,14 +21,14 @@ const login = asyncHandler(async (req, res) => {
 
   const user = await AdminUser.findByEmail(rawEmail.trim().toLowerCase());
   if (!user) {
-    const err = new Error("Credenciales inválidas.");
+    const err = new Error("El correo o la contraseña no son correctos. Inténtalo nuevamente.");
     err.status = 401;
     throw err;
   }
 
   const validPassword = await bcrypt.compare(password, user.password_hash);
   if (!validPassword) {
-    const err = new Error("Credenciales inválidas.");
+    const err = new Error("El correo o la contraseña no son correctos. Inténtalo nuevamente.");
     err.status = 401;
     throw err;
   }
