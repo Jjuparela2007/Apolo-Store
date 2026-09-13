@@ -28,19 +28,24 @@ export default function ProductForm() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState(null);
+  const [loadError, setLoadError] = useState(null);
 
   useEffect(() => {
-    getCategories().then(setCategories);
+    getCategories().then(setCategories).catch(() => {});
     if (isEditing) {
-      getProduct(id).then((p) => {
-        setProduct(p);
-        setForm({
-          categoryId: p.category_id, name: p.name, slug: p.slug,
-          shortDescription: p.short_description || "", description: p.description || "",
-          basePrice: p.base_price, offerPrice: p.offer_price || "", sku: p.sku,
-          featured: !!p.featured, taxable: !!p.taxable, status: p.status,
-        });
-      }).finally(() => setLoading(false));
+      setLoadError(null);
+      getProduct(id)
+        .then((p) => {
+          setProduct(p);
+          setForm({
+            categoryId: p.category_id, name: p.name, slug: p.slug,
+            shortDescription: p.short_description || "", description: p.description || "",
+            basePrice: p.base_price, offerPrice: p.offer_price || "", sku: p.sku,
+            featured: !!p.featured, taxable: !!p.taxable, status: p.status,
+          });
+        })
+        .catch((err) => setLoadError(err.response?.data?.error || "No pudimos cargar el producto."))
+        .finally(() => setLoading(false));
     }
   }, [id]);
 
@@ -77,6 +82,14 @@ export default function ProductForm() {
   };
 
   if (loading) return <p className="text-apolo-steel">Cargando…</p>;
+  if (loadError) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-red-600 mb-4">{loadError}</p>
+        <Link to="/productos" className="text-apolo-blue hover:underline">← Volver a Productos</Link>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -122,8 +135,8 @@ export default function ProductForm() {
             />
           </div>
 
-          {isEditing && <ImagesSection product={product} onUpdated={setProduct} />}
-          {isEditing && <VariantsSection product={product} onUpdated={setProduct} />}
+          {isEditing && product && <ImagesSection product={product} onUpdated={setProduct} />}
+          {isEditing && product && <VariantsSection product={product} onUpdated={setProduct} />}
         </div>
 
         <div className="space-y-6">
