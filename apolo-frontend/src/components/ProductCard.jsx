@@ -82,11 +82,11 @@ export default function ProductCard({ product }) {
       <div className="p-4 flex flex-col gap-1 flex-1">
         <span className="text-xs text-apolo-steel">{product.category_name}</span>
         <h3 className="font-medium text-apolo-navy leading-snug">{product.name}</h3>
-        <div className="mt-auto pt-2 flex items-center justify-between">
-          <div className="flex items-baseline gap-2">
-            <span className="font-semibold text-apolo-navy">{formatPrice(price)}</span>
+        <div className="mt-auto pt-2 flex items-end justify-between gap-2">
+          <div className="flex flex-col min-w-0">
+            <span className="font-semibold text-apolo-navy truncate">{formatPrice(price)}</span>
             {hasDiscount && (
-              <span className="text-xs text-apolo-steel line-through">{formatPrice(product.base_price)}</span>
+              <span className="text-xs text-apolo-steel line-through truncate">{formatPrice(product.base_price)}</span>
             )}
           </div>
           <button
