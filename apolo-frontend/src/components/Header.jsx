@@ -71,6 +71,7 @@ export default function Header() {
               </button>
               <div className="absolute right-0 mt-2 w-48 bg-white text-apolo-navy rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all py-2 text-sm">
                 <div className="px-4 py-2 border-b text-apolo-steel truncate">{customer?.fullName}</div>
+                <Link to="/mi-cuenta" className="block px-4 py-2 hover:bg-apolo-ice">Mi cuenta</Link>
                 <Link to="/mis-pedidos" className="block px-4 py-2 hover:bg-apolo-ice">Mis pedidos</Link>
                 <button onClick={logout} className="w-full text-left px-4 py-2 hover:bg-apolo-ice">Cerrar sesión</button>
               </div>

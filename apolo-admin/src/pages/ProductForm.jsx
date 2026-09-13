@@ -50,7 +50,14 @@ export default function ProductForm() {
   }, [id]);
 
   const handleNameChange = (name) => {
-    setForm((f) => ({ ...f, name, slug: isEditing ? f.slug : slugify(name) }));
+    // Solo se autogeneran al crear un producto nuevo — al editar uno existente,
+    // cambiar el nombre no debe pisar un slug/SKU que ya esté en uso en otros lados
+    // (ej. en una URL compartida, o impreso en una etiqueta física).
+    if (isEditing) {
+      setForm((f) => ({ ...f, name }));
+      return;
+    }
+    setForm((f) => ({ ...f, name, slug: slugify(name), sku: slugify(name).toUpperCase() }));
   };
 
   const handleSubmit = async (e) => {
@@ -170,6 +177,11 @@ export default function ProductForm() {
                 onChange={(e) => setForm({ ...form, sku: e.target.value })}
                 className="w-full border border-apolo-navy/20 rounded-lg px-3 py-2 text-sm"
               />
+              {!isEditing && (
+                <p className="text-xs text-apolo-steel mt-1">
+                  Se genera solo a partir del nombre. Puedes cambiarlo si usas tu propio sistema de códigos.
+                </p>
+              )}
             </div>
           </div>
 

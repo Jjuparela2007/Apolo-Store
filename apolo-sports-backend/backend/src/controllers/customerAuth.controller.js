@@ -98,4 +98,66 @@ const resetPassword = asyncHandler(async (req, res) => {
   res.json({ message: "Contraseña actualizada. Ya puedes iniciar sesión." });
 });
 
-module.exports = { register, login, forgotPassword, resetPassword };
+// GET /api/auth/me  (protegido — requiere sesión, usa req.customer del JWT)
+const getMe = asyncHandler(async (req, res) => {
+  const customer = await Customer.findById(req.customer.id);
+  if (!customer) {
+    const err = new Error("Cliente no encontrado");
+    err.status = 404;
+    throw err;
+  }
+  res.json({ customer });
+});
+
+// PUT /api/auth/me  (protegido) — actualizar nombre, correo y/o teléfono
+const updateMe = asyncHandler(async (req, res) => {
+  const { fullName, email: rawEmail, phone } = req.body;
+
+  let normalizedEmail;
+  if (rawEmail !== undefined) {
+    validateEmail(rawEmail);
+    normalizedEmail = rawEmail.trim().toLowerCase();
+
+    if (normalizedEmail !== req.customer.email) {
+      const existing = await Customer.findByEmail(normalizedEmail);
+      if (existing) {
+        const err = new Error("Ya existe una cuenta con ese correo.");
+        err.status = 409;
+        throw err;
+      }
+    }
+  }
+
+  const customer = await Customer.updateProfile(req.customer.id, { fullName, email: normalizedEmail, phone });
+
+  // El correo va dentro del JWT — si cambió, hay que firmar uno nuevo para que
+  // las siguientes peticiones (y el nombre mostrado en el sitio) queden al día.
+  const token = signCustomerToken(customer);
+
+  res.json({
+    token,
+    customer: { id: customer.id, email: customer.email, fullName: customer.full_name, phone: customer.phone },
+  });
+});
+
+// PUT /api/auth/change-password  (protegido) — exige la contraseña actual
+const changePassword = asyncHandler(async (req, res) => {
+  requireFields(req.body, ["currentPassword", "newPassword"]);
+  const { currentPassword, newPassword } = req.body;
+  validatePasswordStrength(newPassword);
+
+  const fullCustomer = await Customer.findByEmail(req.customer.email);
+  const validPassword = await bcrypt.compare(currentPassword, fullCustomer.password_hash);
+  if (!validPassword) {
+    const err = new Error("La contraseña actual no es correcta.");
+    err.status = 401;
+    throw err;
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+  await Customer.updatePassword(req.customer.id, passwordHash);
+
+  res.json({ message: "Contraseña actualizada correctamente." });
+});
+
+module.exports = { register, login, forgotPassword, resetPassword, getMe, updateMe, changePassword };

@@ -60,6 +60,18 @@ const Customer = {
   async updatePassword(id, passwordHash) {
     await db.query(`UPDATE customers SET password_hash = ? WHERE id = ?`, [passwordHash, id]);
   },
+
+  async updateProfile(id, { fullName, email, phone }) {
+    const fields = [];
+    const values = [];
+    if (fullName !== undefined) { fields.push("full_name = ?"); values.push(fullName); }
+    if (email !== undefined) { fields.push("email = ?"); values.push(email); }
+    if (phone !== undefined) { fields.push("phone = ?"); values.push(phone); }
+    if (fields.length === 0) return this.findById(id);
+
+    await db.query(`UPDATE customers SET ${fields.join(", ")} WHERE id = ?`, [...values, id]);
+    return this.findById(id);
+  },
 };
 
 module.exports = Customer;

@@ -102,21 +102,36 @@ const Product = {
     return row ? this.findById(row.id) : null;
   },
 
+  // Al crear, si el slug o el SKU ya existen, prueba automáticamente con -2, -3, etc.
+  // hasta encontrar uno libre (hasta 20 intentos) — así el admin nunca tiene que
+  // pensar en la unicidad manualmente. Devuelve el producto con el slug/sku que
+  // finalmente quedó guardado, que puede ser distinto al que se pidió originalmente.
   async create({ categoryId, brand, name, slug, shortDescription, description, basePrice,
                  offerPrice, sku, featured, taxable, visibility, status }) {
-    try {
-      const [result] = await db.query(
-        `INSERT INTO products
-          (category_id, brand, name, slug, short_description, description, base_price,
-           offer_price, sku, featured, taxable, visibility, status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [categoryId, brand || "Apolo Sports", name, slug, shortDescription || null, description || null,
-          basePrice, offerPrice || null, sku, !!featured, !!taxable,
-          visibility || "store_and_search", status || "draft"]
-      );
-      return this.findById(result.insertId);
-    } catch (err) {
-      throw translateDuplicateError(err);
+    const MAX_ATTEMPTS = 20;
+    let currentSlug = slug;
+    let currentSku = sku;
+
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      try {
+        const [result] = await db.query(
+          `INSERT INTO products
+            (category_id, brand, name, slug, short_description, description, base_price,
+             offer_price, sku, featured, taxable, visibility, status)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [categoryId, brand || "Apolo Sports", name, currentSlug, shortDescription || null, description || null,
+            basePrice, offerPrice || null, currentSku, !!featured, !!taxable,
+            visibility || "store_and_search", status || "draft"]
+        );
+        return this.findById(result.insertId);
+      } catch (err) {
+        if (err.code !== "ER_DUP_ENTRY" || attempt === MAX_ATTEMPTS) throw translateDuplicateError(err);
+
+        // Solo le agrega el sufijo al campo que realmente chocó, no a ambos a la vez.
+        if (err.sqlMessage?.includes("slug")) currentSlug = `${slug}-${attempt + 1}`;
+        else if (err.sqlMessage?.includes("sku")) currentSku = `${sku}-${attempt + 1}`;
+        else throw translateDuplicateError(err); // otro campo único que no sabemos resolver solos
+      }
     }
   },
 
@@ -144,13 +159,23 @@ const Product = {
     if (updates.length === 0) return this.findById(id);
 
     const setClause = updates.map((k) => `${fieldMap[k]} = ?`).join(", ");
-    const values = updates.map((k) => fields[k]);
-    try {
-      await db.query(`UPDATE products SET ${setClause} WHERE id = ?`, [...values, id]);
-    } catch (err) {
-      throw translateDuplicateError(err);
+    const originalSlug = fields.slug;
+    const originalSku = fields.sku;
+    const MAX_ATTEMPTS = 20;
+
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      const values = updates.map((k) => fields[k]);
+      try {
+        await db.query(`UPDATE products SET ${setClause} WHERE id = ?`, [...values, id]);
+        return this.findById(id);
+      } catch (err) {
+        if (err.code !== "ER_DUP_ENTRY" || attempt === MAX_ATTEMPTS) throw translateDuplicateError(err);
+
+        if (err.sqlMessage?.includes("slug") && originalSlug) fields.slug = `${originalSlug}-${attempt + 1}`;
+        else if (err.sqlMessage?.includes("sku") && originalSku) fields.sku = `${originalSku}-${attempt + 1}`;
+        else throw translateDuplicateError(err);
+      }
     }
-    return this.findById(id);
   },
 
   // Borrado lógico: se archiva en vez de borrarse, para no romper el historial de órdenes

@@ -37,8 +37,14 @@ export function AuthProvider({ children }) {
     setCustomer(null);
   }, []);
 
+  // Cuando el cliente actualiza su perfil (nombre/correo/teléfono), el backend firma
+  // un token nuevo (el correo va dentro del JWT) — esto lo guarda sin pasar por login de nuevo.
+  const updateSession = useCallback((token, customerData) => {
+    persistSession(token, customerData);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ customer, isAuthenticated: !!customer, login, register, logout }}>
+    <AuthContext.Provider value={{ customer, isAuthenticated: !!customer, login, register, logout, updateSession }}>
       {children}
     </AuthContext.Provider>
   );
