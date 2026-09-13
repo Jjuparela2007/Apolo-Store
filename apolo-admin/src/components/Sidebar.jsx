@@ -15,10 +15,7 @@ export default function Sidebar() {
     <aside className="w-64 bg-apolo-navy text-white flex flex-col shrink-0 min-h-screen">
       <div className="p-6 flex items-center gap-2">
         <Logo />
-        <div className="leading-tight">
-          <p className="font-display font-bold text-lg tracking-wide">APOLO SPORTS</p>
-          <p className="text-xs text-white/50 -mt-1">Admin Panel</p>
-        </div>
+        
       </div>
 
       <nav className="flex-1 px-3 space-y-1 mt-2">
