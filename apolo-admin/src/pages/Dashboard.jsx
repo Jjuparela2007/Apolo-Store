@@ -120,10 +120,17 @@ export default function Dashboard() {
               </thead>
               <tbody>
                 {lowStock.slice(0, 6).map((v) => (
-                  <tr key={v.variant_id} className="border-b border-apolo-navy/5">
+                  <tr
+                    key={v.variant_id}
+                    className="border-b border-apolo-navy/5 hover:bg-apolo-ice/40 cursor-pointer"
+                  >
                     <td className="py-2">
-                      <p className="font-medium text-apolo-navy">{v.product_name}</p>
-                      <p className="text-xs text-apolo-steel">{v.product_sku}</p>
+                      <Link to={`/productos/${v.product_id}`} className="block">
+                        <p className="font-medium text-apolo-navy hover:text-apolo-blue hover:underline">
+                          {v.product_name}
+                        </p>
+                        <p className="text-xs text-apolo-steel">{v.product_sku}</p>
+                      </Link>
                     </td>
                     <td className="py-2">Talla {v.size} · {v.color}</td>
                     <td className="py-2 font-medium text-amber-600">{v.stock}</td>
