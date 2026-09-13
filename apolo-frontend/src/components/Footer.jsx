@@ -4,16 +4,7 @@ export default function Footer() {
   return (
     <footer className="bg-apolo-navy text-white/80">
       <div className="bg-apolo-navy-light">
-        <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
-          <p className="font-display text-2xl font-semibold text-white tracking-wide">
-            MÁS QUE ROPA, <span className="text-apolo-blue-light">ES UNA ACTITUD</span>
-          </p>
-          <div className="flex gap-6 text-sm">
-            <span>Comodidad todo el día</span>
-            <span>Transpirabilidad y frescura</span>
-            <span>Estilo en cada detalle</span>
-          </div>
-        </div>
+       
       </div>
       <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-2 sm:grid-cols-4 gap-8 text-sm">
         <div>
@@ -30,6 +21,7 @@ export default function Footer() {
           <ul className="space-y-2">
             <li><Link to="/login" className="hover:text-white">Iniciar sesión</Link></li>
             <li><Link to="/mis-pedidos" className="hover:text-white">Mis pedidos</Link></li>
+            
           </ul>
         </div>
         
