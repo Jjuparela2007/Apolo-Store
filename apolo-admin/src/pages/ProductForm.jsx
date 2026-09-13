@@ -171,9 +171,14 @@ export default function ProductForm() {
                 className="w-full border border-apolo-navy/20 rounded-lg px-3 py-2 text-sm"
               >
                 <option value="">Selecciona una categoría</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>{c.parent_id ? `— ${c.name}` : c.name}</option>
-                ))}
+                {categories.map((c) => {
+                  const parentName = c.parent_id ? categories.find((p) => p.id === c.parent_id)?.name : null;
+                  return (
+                    <option key={c.id} value={c.id}>
+                      {parentName ? `— ${c.name} (${parentName})` : c.name}
+                    </option>
+                  );
+                })}
               </select>
             </div>
             <div>
