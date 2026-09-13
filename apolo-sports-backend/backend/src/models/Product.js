@@ -6,7 +6,7 @@ function translateDuplicateError(err) {
   if (err.code !== "ER_DUP_ENTRY") return err;
 
   let field = "un campo único";
-  if (err.sqlMessage?.includes("slug")) field = "el mismo nombre ";
+  if (err.sqlMessage?.includes("slug")) field = "el slug (URL del producto)";
   else if (err.sqlMessage?.includes("sku")) field = "el SKU";
 
   const friendly = new Error(
