@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { getProducts } from "../api/products";
+import ProductCard from "../components/ProductCard";
 
 const PROMISES = [
   { icon: <TruckIcon />, label: "Envíos a todo el país" },
@@ -12,7 +15,45 @@ const CATEGORY_CARDS = [
   { to: "/categoria/accesorios", title: "Accesorios", subtitle: "Completa tu equipo", image: "/images/category-accesorios.png" },
 ];
 
+const FAQS = [
+  {
+    id: "envios",
+    question: "¿Cuánto tarda el envío?",
+    answer: "Los pedidos se despachan en 1-2 días hábiles y llegan entre 2 y 5 días hábiles según tu ciudad. Te avisamos por correo en cada paso: confirmado, en preparación, enviado y entregado.",
+  },
+  {
+    id: "cambios",
+    question: "¿Cómo hago un cambio o devolución?",
+    answer: "Tienes hasta 30 días desde que recibes tu pedido para solicitar un cambio de talla o una devolución. Escríbenos desde 'Mis pedidos' con el número de tu orden y te guiamos en el proceso.",
+  },
+  {
+    id: "pago",
+    question: "¿Qué métodos de pago aceptan?",
+    answer: "Tarjetas de crédito y débito, Nequi, PSE y pago contra entrega en algunas ciudades, todo procesado de forma segura a través de Wompi.",
+  },
+  {
+    id: "tallas",
+    question: "¿Cómo sé qué talla pedir?",
+    answer: "Cada ficha de producto muestra las tallas disponibles con su stock. Si tienes dudas entre dos tallas, en general recomendamos la más grande para un ajuste más cómodo.",
+  },
+];
+
 export default function Home() {
+  const [featured, setFeatured] = useState([]);
+  const [newArrivals, setNewArrivals] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [openFaq, setOpenFaq] = useState(null);
+
+  useEffect(() => {
+    getProducts({ limit: 12 })
+      .then((data) => {
+        const products = data.products || [];
+        setFeatured(products.filter((p) => p.featured).slice(0, 4));
+        setNewArrivals(products.slice(0, 4)); // ya vienen ordenados por más reciente desde el backend
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div>
       {/* Hero */}
@@ -70,6 +111,67 @@ export default function Home() {
               </div>
             </Link>
           ))}
+        </div>
+      </section>
+
+      {/* Destacados */}
+      {!loading && featured.length > 0 && (
+        <section className="max-w-7xl mx-auto px-6 py-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display font-bold text-3xl text-apolo-navy">Destacados</h2>
+            <Link to="/categoria/hombre" className="text-sm text-apolo-blue hover:underline">Ver todo →</Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {featured.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Lo más nuevo */}
+      {!loading && newArrivals.length > 0 && (
+        <section className="max-w-7xl mx-auto px-6 py-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display font-bold text-3xl text-apolo-navy">Lo más nuevo</h2>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {newArrivals.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {!loading && featured.length === 0 && newArrivals.length === 0 && (
+        <section className="max-w-7xl mx-auto px-6 py-8 text-center text-apolo-steel">
+          Muy pronto vas a encontrar aquí nuestros productos.
+        </section>
+      )}
+
+      {/* Preguntas frecuentes */}
+      <section id="preguntas-frecuentes" className="bg-apolo-ice py-16">
+        <div className="max-w-3xl mx-auto px-6">
+          <h2 className="font-display font-bold text-3xl text-apolo-navy mb-8 text-center">Preguntas frecuentes</h2>
+          <div className="space-y-3">
+            {FAQS.map((faq) => {
+              const isOpen = openFaq === faq.id;
+              return (
+                <div key={faq.id} className="bg-white rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => setOpenFaq(isOpen ? null : faq.id)}
+                    className="w-full flex items-center justify-between px-5 py-4 text-left font-medium text-apolo-navy"
+                  >
+                    {faq.question}
+                    <span className={`transition-transform ${isOpen ? "rotate-45" : ""} text-apolo-blue text-xl leading-none`}>+</span>
+                  </button>
+                  {isOpen && (
+                    <p className="px-5 pb-4 text-sm text-apolo-steel leading-relaxed">{faq.answer}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </section>
     </div>

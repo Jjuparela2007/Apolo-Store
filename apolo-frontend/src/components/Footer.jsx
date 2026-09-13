@@ -29,7 +29,7 @@ export default function Footer() {
           <ul className="space-y-2">
             <li><a href="#" className="hover:text-white">Envíos</a></li>
             <li><a href="#" className="hover:text-white">Cambios y devoluciones</a></li>
-            <li><a href="#" className="hover:text-white">Preguntas frecuentes</a></li>
+            <li><Link to="/#preguntas-frecuentes" className="hover:text-white">Preguntas frecuentes</Link></li>
           </ul>
         </div>
         <div>
