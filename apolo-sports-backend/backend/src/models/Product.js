@@ -1,5 +1,21 @@
 const db = require("../config/db");
 
+// Convierte el error crudo de MySQL (ER_DUP_ENTRY) en un mensaje que el panel admin
+// puede mostrarle directamente al usuario, en vez del genérico "Error interno del servidor".
+function translateDuplicateError(err) {
+  if (err.code !== "ER_DUP_ENTRY") return err;
+
+  let field = "un campo único";
+  if (err.sqlMessage?.includes("slug")) field = "el slug (URL del producto)";
+  else if (err.sqlMessage?.includes("sku")) field = "el SKU";
+
+  const friendly = new Error(
+    `Ya existe otro producto con ${field} que estás usando. Cámbialo por uno distinto e intenta de nuevo.`
+  );
+  friendly.status = 409;
+  return friendly;
+}
+
 const Product = {
   // Catálogo público con búsqueda, filtro por categoría y paginación
   async findAll({ categoryId, search, status = "published", page = 1, limit = 20 } = {}) {
@@ -84,16 +100,20 @@ const Product = {
 
   async create({ categoryId, brand, name, slug, shortDescription, description, basePrice,
                  offerPrice, sku, featured, taxable, visibility, status }) {
-    const [result] = await db.query(
-      `INSERT INTO products
-        (category_id, brand, name, slug, short_description, description, base_price,
-         offer_price, sku, featured, taxable, visibility, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [categoryId, brand || "Apolo Sports", name, slug, shortDescription || null, description || null,
-        basePrice, offerPrice || null, sku, !!featured, !!taxable,
-        visibility || "store_and_search", status || "draft"]
-    );
-    return this.findById(result.insertId);
+    try {
+      const [result] = await db.query(
+        `INSERT INTO products
+          (category_id, brand, name, slug, short_description, description, base_price,
+           offer_price, sku, featured, taxable, visibility, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [categoryId, brand || "Apolo Sports", name, slug, shortDescription || null, description || null,
+          basePrice, offerPrice || null, sku, !!featured, !!taxable,
+          visibility || "store_and_search", status || "draft"]
+      );
+      return this.findById(result.insertId);
+    } catch (err) {
+      throw translateDuplicateError(err);
+    }
   },
 
   async update(id, fields) {
@@ -121,7 +141,11 @@ const Product = {
 
     const setClause = updates.map((k) => `${fieldMap[k]} = ?`).join(", ");
     const values = updates.map((k) => fields[k]);
-    await db.query(`UPDATE products SET ${setClause} WHERE id = ?`, [...values, id]);
+    try {
+      await db.query(`UPDATE products SET ${setClause} WHERE id = ?`, [...values, id]);
+    } catch (err) {
+      throw translateDuplicateError(err);
+    }
     return this.findById(id);
   },
 
