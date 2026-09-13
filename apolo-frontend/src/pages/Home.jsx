@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getProducts } from "../api/products";
-import ProductCard from "../components/ProductCard";
+import ProductRow from "../components/ProductRow";
 
 const PROMISES = [
   { icon: <TruckIcon />, label: "Envíos a todo el país" },
@@ -24,7 +24,7 @@ const FAQS = [
   {
     id: "cambios",
     question: "¿Cómo hago un cambio o devolución?",
-    answer: "Tienes hasta 30 días desde que recibes tu pedido para solicitar un cambio de talla o una devolución. Escríbenos con el número de tu orden y te guiamos en el proceso.",
+    answer: "Tienes hasta 30 días desde que recibes tu pedido para solicitar un cambio de talla o una devolución. Escríbenos desde 'Mis pedidos' con el número de tu orden y te guiamos en el proceso.",
   },
   {
     id: "pago",
@@ -34,7 +34,7 @@ const FAQS = [
   {
     id: "tallas",
     question: "¿Cómo sé qué talla pedir?",
-    answer: "Cada ficha de producto muestra las tallas disponibles con su stock, recomendamos solicitar una talla mayor para un ajuste más cómodo.",
+    answer: "Cada ficha de producto muestra las tallas disponibles con su stock. Si tienes dudas entre dos tallas, en general recomendamos la más grande para un ajuste más cómodo.",
   },
 ];
 
@@ -45,11 +45,11 @@ export default function Home() {
   const [openFaq, setOpenFaq] = useState(null);
 
   useEffect(() => {
-    getProducts({ limit: 12 })
+    getProducts({ limit: 16 })
       .then((data) => {
         const products = data.products || [];
-        setFeatured(products.filter((p) => p.featured).slice(0, 4));
-        setNewArrivals(products.slice(0, 4)); // ya vienen ordenados por más reciente desde el backend
+        setFeatured(products.filter((p) => p.featured).slice(0, 8));
+        setNewArrivals(products.slice(0, 8)); // ya vienen ordenados por más reciente desde el backend
       })
       .finally(() => setLoading(false));
   }, []);
@@ -121,11 +121,7 @@ export default function Home() {
             <h2 className="font-display font-bold text-3xl text-apolo-navy">Destacados</h2>
             <Link to="/categoria/hombre" className="text-sm text-apolo-blue hover:underline">Ver todo →</Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {featured.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+          <ProductRow products={featured} />
         </section>
       )}
 
@@ -135,11 +131,7 @@ export default function Home() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display font-bold text-3xl text-apolo-navy">Lo más nuevo</h2>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {newArrivals.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
-          </div>
+          <ProductRow products={newArrivals} />
         </section>
       )}
 
