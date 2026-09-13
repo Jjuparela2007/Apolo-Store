@@ -7,6 +7,17 @@ function slugify(text) {
     .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
+// El slug tiene que ser único en TODA la tabla, no solo entre hermanas — por eso
+// "Camisetas" bajo Hombre y "Camisetas" bajo Mujer no pueden compartir el mismo
+// slug. Se arma como "camisetas-hombre" / "camisetas-mujer" cuando tiene padre,
+// igual que las categorías de ejemplo que ya traía el sistema.
+function buildSlug(name, parentId, categories) {
+  const base = slugify(name);
+  if (!parentId) return base;
+  const parent = categories.find((c) => String(c.id) === String(parentId));
+  return parent ? `${base}-${slugify(parent.name)}` : base;
+}
+
 export default function Categories() {
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState("");
@@ -28,7 +39,11 @@ export default function Categories() {
     e.preventDefault();
     setError(null);
     try {
-      await createCategory({ name, slug: slugify(name), parentId: parentId || null });
+      await createCategory({
+        name,
+        slug: buildSlug(name, parentId, categories),
+        parentId: parentId || null,
+      });
       setName("");
       setParentId("");
       load();
@@ -53,7 +68,7 @@ export default function Categories() {
     try {
       await updateCategory(id, {
         name: editForm.name,
-        slug: slugify(editForm.name),
+        slug: buildSlug(editForm.name, editForm.parentId, categories),
         parentId: editForm.parentId || null,
       });
       setEditingId(null);
@@ -103,7 +118,7 @@ export default function Categories() {
                             className="w-full border border-apolo-navy/20 rounded px-2 py-1 text-sm"
                           />
                         </td>
-                        <td className="py-2 text-apolo-steel">{slugify(editForm.name)}</td>
+                        <td className="py-2 text-apolo-steel">{buildSlug(editForm.name, editForm.parentId, categories)}</td>
                         <td className="py-2 pr-2">
                           <select
                             value={editForm.parentId}
@@ -162,6 +177,11 @@ export default function Categories() {
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
+            {name && (
+              <p className="text-xs text-apolo-steel">
+                Slug: <span className="font-mono">{buildSlug(name, parentId, categories)}</span>
+              </p>
+            )}
             {error && <p className="text-sm text-red-600">{error}</p>}
             <button className="w-full bg-apolo-blue hover:bg-apolo-blue-light text-white font-semibold py-2.5 rounded-lg transition-colors">
               Crear categoría
