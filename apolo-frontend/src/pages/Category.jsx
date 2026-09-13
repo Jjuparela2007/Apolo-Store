@@ -38,12 +38,20 @@ export default function Category() {
     setLoading(true);
     setError(null);
 
-    const categoryId = activeSubcategory || rootCategory?.id;
+    // "Todos" (sin subcategoría activa) busca en la categoría raíz Y en todas sus
+    // subcategorías — los productos casi siempre están asignados a la subcategoría
+    // (ej. Camisetas), no a la raíz (ej. Hombre) directamente.
+    const categoryId = activeSubcategory
+      ? activeSubcategory
+      : rootCategory
+        ? [rootCategory.id, ...subcategories.map((s) => s.id)].join(",")
+        : undefined;
+
     getProducts({ category: categoryId, search: searchQuery || undefined })
       .then((data) => setProducts(data.products))
       .catch(() => setError("No pudimos cargar el catálogo. Intenta de nuevo en un momento."))
       .finally(() => setLoading(false));
-  }, [rootCategory?.id, activeSubcategory, searchQuery]);
+  }, [rootCategory?.id, subcategories.length, activeSubcategory, searchQuery]);
 
   return (
     <div>

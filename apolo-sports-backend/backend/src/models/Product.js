@@ -13,9 +13,13 @@ const Product = {
       params.push(status);
     }
 
+    // categoryId puede ser un solo id, o un array de ids (ej. la categoría padre +
+    // todas sus subcategorías, para que "Todos" dentro de Hombre muestre también
+    // los productos que están asignados directamente a Camisetas, Pantalones, etc.)
     if (categoryId) {
-      conditions.push("p.category_id = ?");
-      params.push(categoryId);
+      const ids = Array.isArray(categoryId) ? categoryId : [categoryId];
+      conditions.push(`p.category_id IN (${ids.map(() => "?").join(",")})`);
+      params.push(...ids);
     }
     if (search) {
       conditions.push("(p.name LIKE ? OR p.short_description LIKE ?)");
