@@ -47,13 +47,17 @@ const Product = {
     const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
     const [rows] = await db.query(
-      `SELECT p.id, p.name, p.slug, p.short_description, p.base_price, p.offer_price,
+      `SELECT p.id, p.name, p.sku, p.slug, p.short_description, p.base_price, p.offer_price,
               p.featured, p.status, p.category_id, c.name AS category_name,
               (SELECT url FROM product_media m WHERE m.product_id = p.id
                  ORDER BY m.sort_order ASC LIMIT 1) AS thumbnail_url,
               (SELECT COUNT(*) FROM product_variants v WHERE v.product_id = p.id) AS variant_count,
               (SELECT v.id FROM product_variants v WHERE v.product_id = p.id
-                 ORDER BY (v.stock > 0) DESC, v.id ASC LIMIT 1) AS default_variant_id
+                 ORDER BY (v.stock > 0) DESC, v.id ASC LIMIT 1) AS default_variant_id,
+              (SELECT COALESCE(SUM(v.stock), 0) FROM product_variants v
+                 WHERE v.product_id = p.id) AS total_stock,
+              (SELECT COUNT(*) FROM product_variants v
+                 WHERE v.product_id = p.id AND v.stock <= v.low_stock_threshold) AS low_stock_variant_count
        FROM products p
        JOIN categories c ON c.id = p.category_id
        ${whereClause}
