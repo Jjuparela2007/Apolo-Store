@@ -86,7 +86,7 @@ export default function ProductCard({ product }) {
           <div className="flex flex-col min-w-0">
             <span className="font-semibold text-apolo-navy truncate">{formatPrice(price)}</span>
             {hasDiscount && (
-              <span className="text-xs text-apolo-steel line-through truncate">{formatPrice(product.base_price)}</span>
+              <span className="text-xs text-red-500 line-through truncate">{formatPrice(product.base_price)}</span>
             )}
           </div>
           <button
