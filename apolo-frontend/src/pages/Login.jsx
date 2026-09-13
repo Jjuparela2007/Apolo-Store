@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -13,6 +14,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
   const justRegistered = Boolean(location.state?.justRegistered);
+  const sessionExpired = searchParams.get("expired") === "1";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,6 +52,15 @@ export default function Login() {
             <CheckIcon small />
           </span>
           <p className="text-sm">Cuenta creada exitosamente. Inicia sesión para continuar.</p>
+        </div>
+      )}
+
+      {sessionExpired && (
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 text-amber-700 rounded-lg px-4 py-3 mb-6">
+          <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
+            <ClockIcon />
+          </span>
+          <p className="text-sm">Tu sesión expiró. Inicia sesión de nuevo para continuar.</p>
         </div>
       )}
 
@@ -124,6 +135,13 @@ function CheckIcon({ small }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
       <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
+function ClockIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
     </svg>
   );
 }

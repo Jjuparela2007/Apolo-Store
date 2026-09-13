@@ -1,16 +1,19 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Logo from "../components/Logo";
 import { useAdminAuth } from "../context/AdminAuthContext";
 
 export default function Login() {
   const { login } = useAdminAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(null); // guarda el nombre del admin al entrar
   const [showPassword, setShowPassword] = useState(false);
+
+  const sessionExpired = searchParams.get("expired") === "1";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -52,6 +55,13 @@ export default function Login() {
             className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm space-y-4"
           >
             <h2 className="text-white font-medium text-lg mb-2">Iniciar Sesión</h2>
+
+            {sessionExpired && (
+              <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-300 rounded-lg px-3 py-2 text-xs">
+                <ClockIcon />
+                <span>Tu sesión expiró. Inicia sesión de nuevo.</span>
+              </div>
+            )}
 
             <div>
               <label className="text-xs text-white/60 mb-1 block">Correo Electrónico</label>
@@ -129,6 +139,13 @@ function CheckIcon() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
       <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
+function ClockIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="shrink-0 mt-0.5">
+      <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
     </svg>
   );
 }

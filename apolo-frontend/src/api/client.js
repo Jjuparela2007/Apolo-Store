@@ -11,13 +11,18 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
-// Si el token expiró o es inválido, limpia la sesión local para que la UI
-// vuelva a pedir login en vez de quedarse en un estado inconsistente.
+// Si el token expiró o es inválido, limpia la sesión local y manda al cliente a
+// iniciar sesión de nuevo con un aviso — en vez de dejar la página en un estado
+// silencioso donde las siguientes acciones fallarían sin explicación.
 client.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem("apolo_customer_token");
+      localStorage.removeItem("apolo_customer_data");
+      if (!window.location.pathname.includes("/login")) {
+        window.location.href = "/login?expired=1";
+      }
     }
     return Promise.reject(err);
   }

@@ -17,7 +17,7 @@ client.interceptors.response.use(
       localStorage.removeItem("apolo_admin_token");
       localStorage.removeItem("apolo_admin_user");
       if (!window.location.pathname.includes("/login")) {
-        window.location.href = "/login";
+        window.location.href = "/login?expired=1";
       }
     }
     return Promise.reject(err);
