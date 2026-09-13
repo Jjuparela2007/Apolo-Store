@@ -24,7 +24,7 @@ const FAQS = [
   {
     id: "cambios",
     question: "¿Cómo hago un cambio o devolución?",
-    answer: "Tienes hasta 30 días desde que recibes tu pedido para solicitar un cambio de talla o una devolución. Escríbenos desde 'Mis pedidos' con el número de tu orden y te guiamos en el proceso.",
+    answer: "Tienes hasta 30 días desde que recibes tu pedido para solicitar un cambio de talla o una devolución. Escríbenos con el número de tu orden y te guiamos en el proceso.",
   },
   {
     id: "pago",
@@ -34,7 +34,7 @@ const FAQS = [
   {
     id: "tallas",
     question: "¿Cómo sé qué talla pedir?",
-    answer: "Cada ficha de producto muestra las tallas disponibles con su stock. Si tienes dudas entre dos tallas, en general recomendamos la más grande para un ajuste más cómodo.",
+    answer: "Cada ficha de producto muestra las tallas disponibles con su stock, recomendamos solicitar una talla mayor para un ajuste más cómodo.",
   },
 ];
 
