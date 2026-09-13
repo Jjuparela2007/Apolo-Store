@@ -43,6 +43,11 @@ export const getOrders = (params = {}) => client.get("/admin/orders", { params }
 export const getOrder = (id) => client.get(`/admin/orders/${id}`).then((r) => r.data.order);
 export const updateOrderStatus = (id, status) => client.put(`/admin/orders/${id}/status`, { status }).then((r) => r.data.order);
 
+// Clientes
+export const getCustomers = (params = {}) => client.get("/admin/customers", { params }).then((r) => r.data);
+export const getCustomer = (id) => client.get(`/admin/customers/${id}`).then((r) => r.data);
+export const createCustomer = (data) => client.post("/admin/customers", data).then((r) => r.data.customer);
+
 // Reportes
 export const getSalesReport = (params = {}) => client.get("/admin/reports/sales", { params }).then((r) => r.data.sales);
 export const getTopProductsReport = (params = {}) => client.get("/admin/reports/top-products", { params }).then((r) => r.data.products);
