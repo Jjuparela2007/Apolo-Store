@@ -63,12 +63,28 @@ const ProductVariant = {
 
   async findLowStock(productId = null) {
     const params = [];
-    let where = "stock <= low_stock_threshold";
+    let where = "pv.stock <= pv.low_stock_threshold";
     if (productId) {
-      where += " AND product_id = ?";
+      where += " AND pv.product_id = ?";
       params.push(productId);
     }
-    const [rows] = await db.query(`SELECT * FROM product_variants WHERE ${where}`, params);
+    const [rows] = await db.query(
+      `SELECT
+         pv.id                  AS variant_id,
+         pv.product_id,
+         p.name                 AS product_name,
+         p.sku                  AS product_sku,
+         pv.size,
+         pv.color,
+         pv.stock,
+         pv.low_stock_threshold,
+         (pv.low_stock_threshold - pv.stock) AS deficit
+       FROM product_variants pv
+       JOIN products p ON p.id = pv.product_id
+       WHERE ${where}
+       ORDER BY deficit DESC`,
+      params
+    );
     return rows;
   },
 };

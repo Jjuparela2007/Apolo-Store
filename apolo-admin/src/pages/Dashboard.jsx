@@ -111,17 +111,24 @@ export default function Dashboard() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-apolo-steel border-b">
+                  <th className="pb-2">Producto</th>
                   <th className="pb-2">Variante</th>
                   <th className="pb-2">Stock</th>
                   <th className="pb-2">Umbral</th>
+                  <th className="pb-2">Faltan</th>
                 </tr>
               </thead>
               <tbody>
                 {lowStock.slice(0, 6).map((v) => (
-                  <tr key={v.id} className="border-b border-apolo-navy/5">
+                  <tr key={v.variant_id} className="border-b border-apolo-navy/5">
+                    <td className="py-2">
+                      <p className="font-medium text-apolo-navy">{v.product_name}</p>
+                      <p className="text-xs text-apolo-steel">{v.product_sku}</p>
+                    </td>
                     <td className="py-2">Talla {v.size} · {v.color}</td>
                     <td className="py-2 font-medium text-amber-600">{v.stock}</td>
                     <td className="py-2 text-apolo-steel">{v.low_stock_threshold}</td>
+                    <td className="py-2 text-apolo-steel">{v.deficit}</td>
                   </tr>
                 ))}
               </tbody>
