@@ -12,6 +12,8 @@ export default function Login() {
   const [success, setSuccess] = useState(null); // guarda el nombre del cliente al entrar
   const [showPassword, setShowPassword] = useState(false);
 
+  const justRegistered = Boolean(location.state?.justRegistered);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -41,6 +43,16 @@ export default function Login() {
   return (
     <div className="max-w-sm mx-auto px-6 py-20">
       <h1 className="font-display font-bold text-3xl text-apolo-navy mb-6">Iniciar sesión</h1>
+
+      {justRegistered && (
+        <div className="flex items-start gap-3 bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 mb-6">
+          <span className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0 mt-0.5">
+            <CheckIcon small />
+          </span>
+          <p className="text-sm">Cuenta creada exitosamente. Inicia sesión para continuar.</p>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           required
@@ -107,9 +119,10 @@ function EyeOffIcon() {
     </svg>
   );
 }
-function CheckIcon() {
+function CheckIcon({ small }) {
+  const size = small ? 12 : 28;
   return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
       <path d="M20 6 9 17l-5-5" />
     </svg>
   );

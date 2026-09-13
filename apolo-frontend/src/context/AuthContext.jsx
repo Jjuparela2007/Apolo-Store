@@ -24,9 +24,10 @@ export function AuthProvider({ children }) {
     return c;
   }, []);
 
+  // A propósito NO inicia sesión automáticamente: solo crea la cuenta.
+  // El usuario debe iniciar sesión manualmente después, desde /login.
   const register = useCallback(async (data) => {
-    const { token, customer: c } = await registerCustomer(data);
-    persistSession(token, c);
+    const { customer: c } = await registerCustomer(data);
     return c;
   }, []);
 
