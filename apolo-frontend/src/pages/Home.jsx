@@ -38,6 +38,11 @@ const FAQS = [
   },
 ];
 
+// Dirección de la tienda física — cámbiala aquí cuando tengas la dirección real,
+// no hace falta tocar nada más del componente del mapa.
+const STORE_ADDRESS = "Calle 100 #15-20, Bogotá, Colombia";
+const MAPS_EMBED_SRC = `https://maps.google.com/maps?q=${encodeURIComponent(STORE_ADDRESS)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+
 export default function Home() {
   const [featured, setFeatured] = useState([]);
   const [newArrivals, setNewArrivals] = useState([]);
@@ -53,6 +58,8 @@ export default function Home() {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  const hasAnyProducts = featured.length > 0 || newArrivals.length > 0;
 
   return (
     <div>
@@ -114,32 +121,78 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Destacados */}
-      {!loading && featured.length > 0 && (
+      {/* Destacados — mientras carga, muestra el esqueleto en vez de nada */}
+      {(loading || featured.length > 0) && (
         <section className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display font-bold text-3xl text-apolo-navy">Destacados</h2>
-            <Link to="/categoria/hombre" className="text-sm text-apolo-blue hover:underline">Ver todo →</Link>
+            {!loading && <Link to="/categoria/hombre" className="text-sm text-apolo-blue hover:underline">Ver todo →</Link>}
           </div>
-          <ProductRow products={featured} />
+          <ProductRow products={featured} loading={loading} />
         </section>
       )}
 
       {/* Lo más nuevo */}
-      {!loading && newArrivals.length > 0 && (
+      {(loading || newArrivals.length > 0) && (
         <section className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display font-bold text-3xl text-apolo-navy">Lo más nuevo</h2>
           </div>
-          <ProductRow products={newArrivals} />
+          <ProductRow products={newArrivals} loading={loading} />
         </section>
       )}
 
-      {!loading && featured.length === 0 && newArrivals.length === 0 && (
-        <section className="max-w-7xl mx-auto px-6 py-8 text-center text-apolo-steel">
-          Muy pronto vas a encontrar aquí nuestros productos.
+      {!loading && !hasAnyProducts && (
+        <section className="max-w-7xl mx-auto px-6 py-16 text-center">
+          <div className="w-16 h-16 rounded-full bg-apolo-ice flex items-center justify-center mx-auto mb-4 text-apolo-steel">
+            <BoxIcon />
+          </div>
+          <p className="text-apolo-steel mb-1">Muy pronto vas a encontrar aquí nuestros productos.</p>
+          <p className="text-sm text-apolo-steel/70">Síguenos en redes para enterarte apenas abramos el catálogo.</p>
         </section>
       )}
+
+      {/* Sobre Apolo Sports */}
+      <section className="bg-apolo-navy text-white">
+        <div className="max-w-7xl mx-auto px-6 py-16 grid md:grid-cols-2 gap-10 items-center">
+          <div>
+            <p className="font-display tracking-wide text-apolo-blue-light text-sm mb-2">NUESTRA HISTORIA</p>
+            <h2 className="font-display font-bold text-3xl md:text-4xl mb-4">Sobre Apolo Sports</h2>
+            <p className="text-white/70 mb-4 leading-relaxed">
+              Nacimos con una idea simple: la ropa deportiva debería verse tan bien fuera del gimnasio como dentro.
+              Cada prenda de Apolo Sports está pensada para acompañarte en el entrenamiento y en el día a día,
+              sin sacrificar comodidad ni estilo.
+            </p>
+            <p className="text-white/70 leading-relaxed">
+              Trabajamos con materiales de alta calidad y control cuidadoso de cada pedido, para que lo que compres
+              en línea llegue exactamente como lo esperas.
+            </p>
+          </div>
+          <div
+            className="aspect-video md:aspect-square rounded-xl bg-apolo-navy-light bg-cover bg-center"
+            style={{ backgroundImage: "url(/images/about-apolo.png)" }}
+          >
+            {/* Foto de equipo/marca — coloca tu archivo en public/images/about-apolo.png */}
+          </div>
+        </div>
+      </section>
+
+      {/* Ubicación */}
+      <section className="max-w-7xl mx-auto px-6 py-16">
+        <h2 className="font-display font-bold text-3xl text-apolo-navy mb-2 text-center">Visítanos</h2>
+        <p className="text-apolo-steel text-center mb-8">{STORE_ADDRESS}</p>
+        <div className="rounded-xl overflow-hidden border border-apolo-navy/10">
+          <iframe
+            title="Ubicación de Apolo Sports"
+            src={MAPS_EMBED_SRC}
+            width="100%"
+            height="350"
+            style={{ border: 0 }}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        </div>
+      </section>
 
       {/* Preguntas frecuentes */}
       <section id="preguntas-frecuentes" className="bg-apolo-ice py-16">
@@ -188,6 +241,13 @@ function CardIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <rect x="1" y="4" width="22" height="16" rx="2" /><path d="M1 10h22" />
+    </svg>
+  );
+}
+function BoxIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M21 8 12 3 3 8l9 5 9-5Z" /><path d="M3 8v8l9 5 9-5V8" /><path d="M12 13v8" />
     </svg>
   );
 }

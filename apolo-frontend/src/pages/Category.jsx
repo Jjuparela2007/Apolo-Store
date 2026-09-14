@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { getProducts, getCategories } from "../api/products";
 import ProductCard from "../components/ProductCard";
@@ -34,10 +34,16 @@ export default function Category() {
     setActiveSubcategory(null);
   }, [slug]);
 
-  useEffect(() => {
+  // Limpia los productos y activa "Cargando" ANTES de que el navegador pinte el
+  // siguiente fotograma — así nunca se alcanza a ver ni una fracción de segundo
+  // la lista de la categoría anterior al cambiar de Hombre a Mujer, por ejemplo.
+  useLayoutEffect(() => {
+    setProducts([]);
     setLoading(true);
     setError(null);
+  }, [slug, activeSubcategory, searchQuery]);
 
+  useEffect(() => {
     // "Todos" (sin subcategoría activa) busca en la categoría raíz Y en todas sus
     // subcategorías — los productos casi siempre están asignados a la subcategoría
     // (ej. Camisetas), no a la raíz (ej. Hombre) directamente.

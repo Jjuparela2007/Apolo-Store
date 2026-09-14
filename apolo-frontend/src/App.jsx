@@ -4,6 +4,7 @@ import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import AnnouncementBar from "./components/AnnouncementBar";
 
 import Home from "./pages/Home";
 import Category from "./pages/Category";
@@ -22,6 +23,7 @@ import NotFound from "./pages/NotFound";
 function Layout({ children }) {
   return (
     <div className="min-h-screen flex flex-col">
+      <AnnouncementBar />
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />
