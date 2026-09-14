@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getProducts } from "../api/products";
 import ProductRow from "../components/ProductRow";
+import StoreCarousel from "../components/StoreCarousel";
 
 const PROMISES = [
   { icon: <TruckIcon />, label: "Envíos a todo el país" },
@@ -38,10 +39,8 @@ const FAQS = [
   },
 ];
 
-// Dirección de la tienda física — cámbiala aquí cuando tengas la dirección real,
-// no hace falta tocar nada más del componente del mapa.
+// Dirección de la tienda física — cámbiala aquí cuando tengas la dirección real.
 const STORE_ADDRESS = "Calle 100 #15-20, Bogotá, Colombia";
-const MAPS_EMBED_SRC = `https://maps.google.com/maps?q=${encodeURIComponent(STORE_ADDRESS)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 
 export default function Home() {
   const [featured, setFeatured] = useState([]);
@@ -177,8 +176,12 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Ubicación */}
-      
+      {/* Nuestro local */}
+      <section className="max-w-7xl mx-auto px-6 py-16">
+        <h2 className="font-display font-bold text-3xl text-apolo-navy mb-2 text-center">Visítanos</h2>
+        <p className="text-apolo-steel text-center mb-8">{STORE_ADDRESS}</p>
+        <StoreCarousel />
+      </section>
 
       {/* Preguntas frecuentes */}
       <section id="preguntas-frecuentes" className="bg-apolo-ice py-16">
