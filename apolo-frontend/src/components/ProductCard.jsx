@@ -14,6 +14,7 @@ export default function ProductCard({ product }) {
   const { addItem } = useCart();
   const navigate = useNavigate();
   const [cartStatus, setCartStatus] = useState(null); // 'adding' | 'added'
+  const [authNotice, setAuthNotice] = useState(null); // 'favorite' | 'cart'
 
   const price = product.offer_price ?? product.base_price;
   const hasDiscount = product.offer_price && product.offer_price < product.base_price;
@@ -24,15 +25,22 @@ export default function ProductCard({ product }) {
   // cuál quiere el cliente sin preguntarle — para eso lo mandamos a la ficha.
   const canQuickAdd = product.variant_count === 1 && product.default_variant_id;
 
+  const redirectToLogin = (reason) => {
+    setAuthNotice(reason);
+    setTimeout(() => {
+      navigate("/login", { state: { from: `/producto/${product.slug}` } });
+    }, 1500);
+  };
+
   const handleToggleFavorite = (e) => {
     e.preventDefault();
-    if (!isAuthenticated) return navigate("/login", { state: { from: `/producto/${product.slug}` } });
+    if (!isAuthenticated) return redirectToLogin("favorite");
     toggleFavorite(product.id);
   };
 
   const handleCartClick = async (e) => {
     e.preventDefault();
-    if (!isAuthenticated) return navigate("/login", { state: { from: `/producto/${product.slug}` } });
+    if (!isAuthenticated) return redirectToLogin("cart");
     if (!canQuickAdd) return navigate(`/producto/${product.slug}`);
 
     setCartStatus("adding");
@@ -77,6 +85,14 @@ export default function ProductCard({ product }) {
         >
           <HeartIcon filled={favorited} />
         </button>
+
+        {authNotice && (
+          <div className="absolute inset-x-0 bottom-0 bg-apolo-navy/95 text-white text-xs text-center px-3 py-2 leading-snug">
+            {authNotice === "favorite"
+              ? "Debes iniciar sesión para poder agregar a favoritos"
+              : "Debes iniciar sesión para poder agregar al carrito"}
+          </div>
+        )}
       </div>
 
       <div className="p-4 flex flex-col gap-1 flex-1">

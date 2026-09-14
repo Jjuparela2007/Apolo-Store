@@ -21,7 +21,7 @@ export default function ProductDetail() {
   const [activeImage, setActiveImage] = useState(0);
   const [isZooming, setIsZooming] = useState(false);
   const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
-  const [status, setStatus] = useState(null); // 'adding' | 'added' | 'error'
+  const [status, setStatus] = useState(null); // 'adding' | 'added' | 'error' | 'needs-login'
 
   useEffect(() => {
     setLoading(true);
@@ -45,7 +45,13 @@ export default function ProductDetail() {
   const price = product.offer_price ?? product.base_price;
 
   const handleAddToCart = async () => {
-    if (!isAuthenticated) return navigate("/login", { state: { from: `/producto/${slug}` } });
+    if (!isAuthenticated) {
+      setStatus("needs-login");
+      setTimeout(() => {
+        navigate("/login", { state: { from: `/producto/${slug}` } });
+      }, 1800);
+      return;
+    }
     if (!activeVariant) return;
 
     setStatus("adding");
@@ -168,14 +174,21 @@ export default function ProductDetail() {
           <p className="text-sm text-red-600 mb-4">Sin stock en esta combinación.</p>
         )}
 
+        {status === "needs-login" && (
+          <p className="text-sm text-apolo-blue bg-apolo-blue/10 rounded-lg px-4 py-2.5 mb-4">
+            Debes iniciar sesión para poder agregar al carrito. Te llevamos al login…
+          </p>
+        )}
+
         <button
           onClick={handleAddToCart}
-          disabled={!activeVariant || activeVariant.stock === 0 || status === "adding"}
+          disabled={(!activeVariant && isAuthenticated) || activeVariant?.stock === 0 || status === "adding" || status === "needs-login"}
           className="w-full bg-apolo-blue hover:bg-apolo-blue-light disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-full transition-colors"
         >
           {status === "adding" && "Agregando…"}
           {status === "added" && "¡Agregado al carrito!"}
           {status === "error" && "Error, intenta de nuevo"}
+          {status === "needs-login" && "Redirigiendo…"}
           {!status && "Agregar al carrito"}
         </button>
 
