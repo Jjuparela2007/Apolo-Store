@@ -5,6 +5,7 @@ import { WishlistProvider } from "./context/WishlistContext";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import AnnouncementBar from "./components/AnnouncementBar";
+import ScrollToTop from "./components/ScrollToTop";
 
 import Home from "./pages/Home";
 import Category from "./pages/Category";
@@ -38,6 +39,7 @@ export default function App() {
       <AuthProvider>
         <CartProvider>
           <WishlistProvider>
+            <ScrollToTop />
             <Layout>
               <Routes>
                 <Route path="/" element={<Home />} />
