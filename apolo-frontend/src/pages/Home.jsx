@@ -40,7 +40,7 @@ const FAQS = [
 ];
 
 // Dirección de la tienda física — cámbiala aquí cuando tengas la dirección real.
-const STORE_ADDRESS = "Barrio la coruña, Ciudad Bolivar, Bogotá";
+const STORE_ADDRESS = "Calle 100 #15-20, Bogotá, Colombia";
 
 export default function Home() {
   const [featured, setFeatured] = useState([]);
@@ -125,7 +125,7 @@ export default function Home() {
         <section className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display font-bold text-3xl text-apolo-navy">Destacados</h2>
-            {!loading && <Link to="/categoria/hombre" className="text-sm text-apolo-blue hover:underline">Ver todo →</Link>}
+            {!loading && <Link to="/destacados" className="text-sm text-apolo-blue hover:underline">Ver todo →</Link>}
           </div>
           <ProductRow products={featured} loading={loading} />
         </section>

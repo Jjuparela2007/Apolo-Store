@@ -5,10 +5,10 @@ const ProductVariant = require("../models/ProductVariant");
 const { asyncHandler } = require("../middleware/error.middleware");
 const { requireFields } = require("../middleware/validate.middleware");
 
-// GET /api/products?category=1&search=camiseta&page=1
+// GET /api/products?category=1&search=camiseta&page=1&featured=true
 // category también acepta varios ids separados por coma: category=1,4,5
 const listProducts = asyncHandler(async (req, res) => {
-  const { category, search, page, status } = req.query;
+  const { category, search, page, status, featured } = req.query;
   // status=all (usado por el panel admin) quita el filtro de status por completo.
   // Sin parámetro, el catálogo público solo ve productos publicados.
   const resolvedStatus = status === "all" ? null : status || "published";
@@ -16,6 +16,7 @@ const listProducts = asyncHandler(async (req, res) => {
   const result = await Product.findAll({
     categoryId,
     search,
+    featured: featured === "true",
     status: resolvedStatus,
     page,
   });

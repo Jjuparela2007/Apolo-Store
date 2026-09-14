@@ -8,6 +8,7 @@ import AnnouncementBar from "./components/AnnouncementBar";
 
 import Home from "./pages/Home";
 import Category from "./pages/Category";
+import Featured from "./pages/Featured";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import Favorites from "./pages/Favorites";
@@ -41,6 +42,7 @@ export default function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/categoria/:slug" element={<Category />} />
+                <Route path="/destacados" element={<Featured />} />
                 <Route path="/buscar" element={<Category />} />
                 <Route path="/producto/:slug" element={<ProductDetail />} />
                 <Route path="/carrito" element={<Cart />} />

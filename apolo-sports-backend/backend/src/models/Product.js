@@ -18,7 +18,7 @@ function translateDuplicateError(err) {
 
 const Product = {
   // Catálogo público con búsqueda, filtro por categoría y paginación
-  async findAll({ categoryId, search, status = "published", page = 1, limit = 20 } = {}) {
+  async findAll({ categoryId, search, featured, status = "published", page = 1, limit = 20 } = {}) {
     const conditions = [];
     const params = [];
 
@@ -36,6 +36,9 @@ const Product = {
       const ids = Array.isArray(categoryId) ? categoryId : [categoryId];
       conditions.push(`p.category_id IN (${ids.map(() => "?").join(",")})`);
       params.push(...ids);
+    }
+    if (featured) {
+      conditions.push("p.featured = 1");
     }
     if (search) {
       conditions.push("(p.name LIKE ? OR p.short_description LIKE ?)");
@@ -201,4 +204,4 @@ const Product = {
   },
 };
 
-module.exports = Product;
+module.exports = Product; 
