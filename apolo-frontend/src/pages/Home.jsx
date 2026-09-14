@@ -40,7 +40,7 @@ const FAQS = [
 ];
 
 // Dirección de la tienda física — cámbiala aquí cuando tengas la dirección real.
-const STORE_ADDRESS = "Calle 100 #15-20, Bogotá, Colombia";
+const STORE_ADDRESS = "Barrio la coruña, Ciudad Bolivar, Bogotá";
 
 export default function Home() {
   const [featured, setFeatured] = useState([]);
