@@ -313,7 +313,7 @@ function ImagesSection({ product, onUpdated }) {
 }
 
 function VariantsSection({ product, onUpdated }) {
-  const [form, setForm] = useState({ size: "", color: "Único", colorHex: "#0A1830", stock: 0 });
+  const [form, setForm] = useState({ size: "", color: "", colorHex: "#334155", stock: 0 });
   const [error, setError] = useState(null);
 
   const refresh = async () => onUpdated(await getProduct(product.id));
@@ -322,8 +322,10 @@ function VariantsSection({ product, onUpdated }) {
     e.preventDefault();
     setError(null);
     try {
-      await addVariant(product.id, { ...form, stock: Number(form.stock) });
-      setForm({ size: "", color: "Único", colorHex: "#0A1830", stock: 0 });
+      // Si dejan el nombre vacío (producto de talla única sin variantes de color real),
+      // usa "Único" como antes — pero ya sin forzar un color hex que no corresponde.
+      await addVariant(product.id, { ...form, color: form.color || "Único", stock: Number(form.stock) });
+      setForm({ size: "", color: "", colorHex: "#334155", stock: 0 });
       refresh();
     } catch (err) {
       setError(err.response?.data?.error || "No pudimos agregar la variante.");
@@ -332,6 +334,11 @@ function VariantsSection({ product, onUpdated }) {
 
   const handleStockChange = async (variantId, stock) => {
     await updateVariant(variantId, { stock: Number(stock) });
+    refresh();
+  };
+
+  const handleColorHexChange = async (variantId, colorHex) => {
+    await updateVariant(variantId, { colorHex });
     refresh();
   };
 
@@ -358,9 +365,17 @@ function VariantsSection({ product, onUpdated }) {
             {product.variants.map((v) => (
               <tr key={v.id} className="border-b border-apolo-navy/5">
                 <td className="py-2 font-medium text-apolo-navy">{v.size}</td>
-                <td className="py-2 flex items-center gap-2">
-                  <span className="w-4 h-4 rounded-full border" style={{ backgroundColor: v.color_hex || "#ccc" }} />
-                  {v.color}
+                <td className="py-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={v.color_hex || "#334155"}
+                      onChange={(e) => handleColorHexChange(v.id, e.target.value)}
+                      title="Cambiar el color mostrado para esta variante"
+                      className="w-6 h-6 rounded-full border border-apolo-navy/20 p-0 cursor-pointer overflow-hidden"
+                    />
+                    {v.color}
+                  </div>
                 </td>
                 <td className="py-2">
                   <input
@@ -378,7 +393,7 @@ function VariantsSection({ product, onUpdated }) {
         </table>
       )}
 
-      <div className="grid grid-cols-4 gap-2 items-end">
+      <div className="grid grid-cols-5 gap-2 items-end">
         <div>
           <label className="text-xs text-apolo-steel mb-1 block">Talla</label>
           <input value={form.size} onChange={(e) => setForm({ ...form, size: e.target.value })} placeholder="M" className="w-full border border-apolo-navy/20 rounded-lg px-2 py-1.5 text-sm" />
@@ -388,11 +403,23 @@ function VariantsSection({ product, onUpdated }) {
           <input value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} placeholder="Negro" className="w-full border border-apolo-navy/20 rounded-lg px-2 py-1.5 text-sm" />
         </div>
         <div>
+          <label className="text-xs text-apolo-steel mb-1 block">Tono</label>
+          <input
+            type="color"
+            value={form.colorHex}
+            onChange={(e) => setForm({ ...form, colorHex: e.target.value })}
+            className="w-full h-[34px] border border-apolo-navy/20 rounded-lg p-0.5 cursor-pointer"
+          />
+        </div>
+        <div>
           <label className="text-xs text-apolo-steel mb-1 block">Stock</label>
           <input type="number" min="0" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} className="w-full border border-apolo-navy/20 rounded-lg px-2 py-1.5 text-sm" />
         </div>
         <button type="button" onClick={handleAdd} className="bg-apolo-navy text-white text-sm font-medium py-1.5 rounded-lg">+ Agregar</button>
       </div>
+      <p className="text-xs text-apolo-steel mt-2">
+        "Tono" es el color que se muestra en el círculo de la tienda — elige el que se parezca al color real de la prenda.
+      </p>
       {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
     </div>
   );
