@@ -49,7 +49,7 @@ export default function ProductDetail() {
       setStatus("needs-login");
       setTimeout(() => {
         navigate("/login", { state: { from: `/producto/${slug}` } });
-      }, 1800);
+      }, 3000);
       return;
     }
     if (!activeVariant) return;

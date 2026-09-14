@@ -29,7 +29,7 @@ export default function ProductCard({ product }) {
     setAuthNotice(reason);
     setTimeout(() => {
       navigate("/login", { state: { from: `/producto/${product.slug}` } });
-    }, 1500);
+    }, 3000);
   };
 
   const handleToggleFavorite = (e) => {
