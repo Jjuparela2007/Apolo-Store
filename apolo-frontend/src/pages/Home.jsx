@@ -178,21 +178,7 @@ export default function Home() {
       </section>
 
       {/* Ubicación */}
-      <section className="max-w-7xl mx-auto px-6 py-16">
-        <h2 className="font-display font-bold text-3xl text-apolo-navy mb-2 text-center">Visítanos</h2>
-        <p className="text-apolo-steel text-center mb-8">{STORE_ADDRESS}</p>
-        <div className="rounded-xl overflow-hidden border border-apolo-navy/10">
-          <iframe
-            title="Ubicación de Apolo Sports"
-            src={MAPS_EMBED_SRC}
-            width="100%"
-            height="350"
-            style={{ border: 0 }}
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
-        </div>
-      </section>
+      
 
       {/* Preguntas frecuentes */}
       <section id="preguntas-frecuentes" className="bg-apolo-ice py-16">
