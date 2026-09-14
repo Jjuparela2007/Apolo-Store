@@ -1,12 +1,9 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
-function getTransporter() {
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT) || 587,
-    secure: Number(process.env.SMTP_PORT) === 465,
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD },
-  });
+// Usamos la API HTTP de Resend (puerto 443) en vez de SMTP: Railway bloquea las
+// conexiones salientes por SMTP (puertos 465/587), pero HTTPS normal siempre funciona.
+function getResendClient() {
+  return new Resend(process.env.RESEND_API_KEY);
 }
 
 // Plantilla base: envoltorio con la marca de Apolo Sports. Los estilos van en línea
@@ -53,15 +50,27 @@ function emailLayout({ preheader = "", bodyHtml, ctaText, ctaUrl }) {
 }
 
 async function sendMail({ to, subject, html }) {
-  // Si no hay credenciales SMTP configuradas (ej. en desarrollo local sin cuenta de correo),
+  // Si no hay API key configurada (ej. en desarrollo local sin cuenta de correo),
   // no truena la app — solo lo deja registrado en consola para poder seguir probando el flujo.
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
-    console.warn("[email] SMTP no configurado. Email simulado:", { to, subject });
+  if (!process.env.RESEND_API_KEY) {
+    console.warn("[email] RESEND_API_KEY no configurada. Email simulado:", { to, subject });
     return { simulated: true };
   }
 
-  const transporter = getTransporter();
-  return transporter.sendMail({ from: process.env.SMTP_FROM, to, subject, html });
+  const resend = getResendClient();
+  const { data, error } = await resend.emails.send({
+    from: process.env.EMAIL_FROM, // ej. "Apolo Sports <onboarding@resend.dev>"
+    to,
+    subject,
+    html,
+  });
+
+  if (error) {
+    console.error("[email] Error al enviar con Resend:", error);
+    throw new Error(`No se pudo enviar el correo: ${error.message || error}`);
+  }
+
+  return data;
 }
 
 async function sendPasswordResetEmail({ to, resetUrl }) {
