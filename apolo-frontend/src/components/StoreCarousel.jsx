@@ -1,39 +1,53 @@
 import { useState } from "react";
 
-// Carrusel simple de fotos del local físico. Cambia STORE_IMAGES para agregar,
-// quitar o reordenar fotos — cada una debe existir en public/images/.
-const STORE_IMAGES = [
-  { src: "/images/local-1.png", alt: "Fachada de Apolo Sports" },
-  { src: "/images/local-2.png", alt: "Interior de la tienda" },
-  { src: "/images/local-3.png", alt: "Exhibición de productos" },
+// Carrusel simple del local físico. Cambia STORE_ITEMS para agregar, quitar o
+// reordenar contenido — cada archivo debe existir en public/images/ (o public/videos/
+// para el video). type puede ser "image" o "video".
+const STORE_ITEMS = [
+  { type: "image", src: "/images/local-1.png", alt: "Fachada de Apolo Sports" },
+  { type: "image", src: "/images/local-2.png", alt: "Interior de la tienda" },
+  { type: "image", src: "/images/local-3.png", alt: "Exhibición de productos" },
+  { type: "video", src: "/videos/local-tour.mp4", alt: "Recorrido por la tienda" },
 ];
 
 export default function StoreCarousel() {
   const [index, setIndex] = useState(0);
 
-  const goTo = (i) => setIndex((i + STORE_IMAGES.length) % STORE_IMAGES.length);
+  const goTo = (i) => setIndex((i + STORE_ITEMS.length) % STORE_ITEMS.length);
 
   return (
     <div className="relative rounded-xl overflow-hidden border border-apolo-navy/10 bg-apolo-ice">
       <div className="aspect-video sm:aspect-[21/9] relative">
-        {STORE_IMAGES.map((img, i) => (
-          <img
-            key={img.src}
-            src={img.src}
-            alt={img.alt}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+        {STORE_ITEMS.map((item, i) => (
+          <div
+            key={item.src}
+            className={`absolute inset-0 w-full h-full transition-opacity duration-500 ${
               i === index ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
-          />
+          >
+            {item.type === "video" ? (
+              <video
+                src={item.src}
+                className="w-full h-full object-cover"
+                autoPlay={i === index}
+                muted
+                loop
+                playsInline
+                controls
+              />
+            ) : (
+              <img src={item.src} alt={item.alt} className="w-full h-full object-cover" />
+            )}
+          </div>
         ))}
       </div>
 
-      {STORE_IMAGES.length > 1 && (
+      {STORE_ITEMS.length > 1 && (
         <>
           <button
             type="button"
             onClick={() => goTo(index - 1)}
-            aria-label="Foto anterior"
+            aria-label="Anterior"
             className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-apolo-navy flex items-center justify-center shadow"
           >
             <ChevronIcon direction="left" />
@@ -41,18 +55,18 @@ export default function StoreCarousel() {
           <button
             type="button"
             onClick={() => goTo(index + 1)}
-            aria-label="Foto siguiente"
+            aria-label="Siguiente"
             className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-apolo-navy flex items-center justify-center shadow"
           >
             <ChevronIcon direction="right" />
           </button>
 
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
-            {STORE_IMAGES.map((_, i) => (
+            {STORE_ITEMS.map((_, i) => (
               <button
                 key={i}
                 onClick={() => goTo(i)}
-                aria-label={`Ir a la foto ${i + 1}`}
+                aria-label={`Ir al elemento ${i + 1}`}
                 className={`w-2 h-2 rounded-full transition-colors ${i === index ? "bg-white" : "bg-white/50"}`}
               />
             ))}
