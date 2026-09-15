@@ -40,7 +40,7 @@ const FAQS = [
 ];
 
 // Dirección de la tienda física — cámbiala aquí cuando tengas la dirección real.
-const STORE_ADDRESS = "Calle 100 #15-20, Bogotá, Colombia";
+const STORE_ADDRESS = "CRA 47 # 59C 39 SUR, Bogotá, Colombia";
 
 export default function Home() {
   const [featured, setFeatured] = useState([]);
@@ -178,7 +178,7 @@ export default function Home() {
 
       {/* Nuestro local */}
       <section className="max-w-7xl mx-auto px-6 py-16">
-        <h2 className="font-display font-bold text-3xl text-apolo-navy mb-2 text-center">Visítanos</h2>
+        <h2 className="font-display font-bold text-3xl text-apolo-navy mb-2 text-center">Visítanos en Barrio La Coruña</h2>
         <p className="text-apolo-steel text-center mb-8">{STORE_ADDRESS}</p>
         <StoreCarousel />
       </section>
