@@ -1,28 +1,31 @@
 // services/shipping.service.js
 const db = require("../config/db");
 
-// Busca primero una tarifa exacta de ciudad; si no existe, la tarifa general
-// del departamento (city IS NULL); si tampoco existe, cae a la tarifa '_default'.
-// Si no llega ciudad/departamento todavía (formulario a medio llenar), retorna 0.
-async function getShippingCost({ city, department }) {
-  if (!city || !department) return 0;
+function normalize(str) {
+  return (str || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // quita tildes: á->a, ñ->n, etc.
+    .trim();
+}
 
-  const [[cityRate]] = await db.query(
-    `SELECT cost FROM shipping_rates WHERE LOWER(department) = LOWER(?) AND LOWER(city) = LOWER(?) LIMIT 1`,
-    [department, city]
-  );
-  if (cityRate) return Number(cityRate.cost);
+// Decide la tarifa SOLO por la ciudad (normalizada, sin importar tildes ni
+// mayúsculas) — así "Bogotá", "bogota", "BOGOTÁ" o "bogotá" siempre matchean.
+// Si no hay ciudad todavía (formulario a medio llenar), retorna 0.
+async function getShippingCost({ city }) {
+  if (!city) return 0;
 
-  const [[deptRate]] = await db.query(
-    `SELECT cost FROM shipping_rates WHERE LOWER(department) = LOWER(?) AND city IS NULL LIMIT 1`,
-    [department]
-  );
-  if (deptRate) return Number(deptRate.cost);
+  const isBogota = normalize(city) === "bogota";
+  const targetDepartment = isBogota ? "Bogotá D.C." : "_default";
 
-  const [[defaultRate]] = await db.query(
-    `SELECT cost FROM shipping_rates WHERE department = '_default' LIMIT 1`
+  const [[rate]] = await db.query(
+    `SELECT cost FROM shipping_rates WHERE department = ? LIMIT 1`,
+    [targetDepartment]
   );
-  return defaultRate ? Number(defaultRate.cost) : 0;
+  if (rate) return Number(rate.cost);
+
+  // Respaldo por si borraste la fila _default por accidente
+  return 0;
 }
 
 module.exports = { getShippingCost };

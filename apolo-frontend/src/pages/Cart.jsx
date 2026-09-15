@@ -40,15 +40,20 @@ export default function Cart() {
   const [error, setError] = useState(null);
   const [quote, setQuote] = useState(null);
 
-  // Pide el desglose (subtotal + envío + recargo = total) apenas hay items en
-  // el carrito, para mostrarlo en el resumen antes de que el cliente confirme
-  // — así el monto que ve aquí es el mismo que se le va a cobrar en Wompi.
+  // Pide el desglose (subtotal + envío + recargo = total) cada vez que cambian
+  // el carrito o la ciudad/departamento — así el envío se calcula de verdad en
+  // cuanto el cliente termina de escribirlos, y el total que ve aquí es el
+  // mismo que se le va a cobrar en Wompi. Se calcula en el backend, nunca
+  // confiamos en un shippingCost que mande el cliente.
   useEffect(() => {
     if (!isAuthenticated || items.length === 0) return;
-    quoteOrder({ shippingCost: 0 })
-      .then(setQuote)
-      .catch(() => setQuote(null));
-  }, [isAuthenticated, items, subtotal]);
+    const timeout = setTimeout(() => {
+      quoteOrder({ shippingCity: form.shippingCity, shippingDepartment: form.shippingDepartment })
+        .then(setQuote)
+        .catch(() => setQuote(null));
+    }, 400); // debounce mientras el cliente sigue escribiendo
+    return () => clearTimeout(timeout);
+  }, [isAuthenticated, items, subtotal, form.shippingCity]);
 
 
   if (!isAuthenticated) {
@@ -142,7 +147,9 @@ export default function Cart() {
         <div className="flex justify-between text-sm mb-2">
           <span className="text-apolo-steel">Envío</span>
           <span className="font-medium text-apolo-navy">
-            {quote ? formatPrice(quote.shippingCost) : "Se calcula después"}
+            {form.shippingCity
+              ? (quote ? formatPrice(quote.shippingCost) : "Calculando…")
+              : "Ingresa tu ciudad"}
           </span>
         </div>
         {quote && (
@@ -155,7 +162,6 @@ export default function Cart() {
           <span>Total</span>
           <span>{quote ? formatPrice(quote.total) : formatPrice(subtotal)}</span>
         </div>
-        <p className="text-xs text-apolo-steel mb-4">El envío se calcula después de confirmar tu dirección.</p>
 
         <form onSubmit={handleCheckout} className="space-y-3">
           <input
