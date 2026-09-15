@@ -9,20 +9,20 @@ const VALID_STATUSES = [
 
 // POST /api/orders/quote  (requiere sesión de cliente — previsualiza el total con recargo, sin crear la orden)
 const quoteOrder = asyncHandler(async (req, res) => {
-  const { shippingCost } = req.body;
-  const quote = await Order.quote({ customerId: req.customer.id, shippingCost: shippingCost || 0 });
+  const { shippingCity, shippingDepartment } = req.body;
+  const quote = await Order.quote({ customerId: req.customer.id, shippingCity, shippingDepartment });
   res.json({ quote });
 });
 
 // POST /api/orders  (checkout — requiere sesión de cliente; toma el carrito actual)
 const createOrder = asyncHandler(async (req, res) => {
   requireFields(req.body, ["shippingAddressLine", "shippingCity", "shippingDepartment"]);
-  const { shippingAddressLine, shippingCity, shippingDepartment, shippingCost } = req.body;
+  const { shippingAddressLine, shippingCity, shippingDepartment } = req.body;
 
   const order = await Order.createFromCart({
     customerId: req.customer.id,
     customerEmail: req.customer.email,
-    shippingAddressLine, shippingCity, shippingDepartment, shippingCost,
+    shippingAddressLine, shippingCity, shippingDepartment,
   });
 
   res.status(201).json({ order });

@@ -2,6 +2,7 @@ const db = require("../config/db");
 const Cart = require("./Cart");
 const ProductVariant = require("./ProductVariant");
 const { calculateTotalWithSurcharge } = require("../services/pricing.service");
+const { getShippingCost } = require("../services/shipping.service");
 
 function generateOrderNumber() {
   const year = new Date().getFullYear();
@@ -47,7 +48,7 @@ const Order = {
   // Calcula el desglose (subtotal + envío + recargo = total) SIN crear la
   // orden todavía — para mostrarlo en el resumen del checkout antes de que
   // el cliente confirme y se abra Wompi.
-  async quote({ customerId, shippingCost = 0 }) {
+  async quote({ customerId, shippingCity, shippingDepartment }) {
     const { items } = await Cart.getContents(customerId);
     if (!items.length) {
       const err = new Error("El carrito está vacío");
@@ -56,6 +57,7 @@ const Order = {
     }
 
     const subtotal = items.reduce((sum, i) => sum + i.unit_price * i.quantity, 0);
+    const shippingCost = await getShippingCost({ city: shippingCity, department: shippingDepartment });
     const netAmount = subtotal + shippingCost;
     const { surcharge: paymentSurcharge, total } = calculateTotalWithSurcharge(netAmount);
 
@@ -64,7 +66,7 @@ const Order = {
 
   // Crea la orden a partir del carrito ACTUAL del cliente: valida stock, lo reserva,
   // copia los items a order_items, y vacía el carrito — todo en una transacción.
-  async createFromCart({ customerId, customerEmail, shippingAddressLine, shippingCity, shippingDepartment, shippingCost = 0 }) {
+  async createFromCart({ customerId, customerEmail, shippingAddressLine, shippingCity, shippingDepartment }) {
     const { items } = await Cart.getContents(customerId);
     if (!items.length) {
       const err = new Error("El carrito está vacío");
@@ -73,6 +75,7 @@ const Order = {
     }
 
     const subtotal = items.reduce((sum, i) => sum + i.unit_price * i.quantity, 0);
+    const shippingCost = await getShippingCost({ city: shippingCity, department: shippingDepartment });
     const netAmount = subtotal + shippingCost; // lo que realmente quieres recibir
     const { surcharge: paymentSurcharge, total } = calculateTotalWithSurcharge(netAmount);
     const orderNumber = generateOrderNumber();
