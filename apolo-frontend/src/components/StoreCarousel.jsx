@@ -4,9 +4,9 @@ import { useState } from "react";
 // reordenar contenido — cada archivo debe existir en public/images/ (o public/videos/
 // para el video). type puede ser "image" o "video".
 const STORE_ITEMS = [
-  { type: "image", src: "/images/local-1.png", alt: "Fachada de Apolo Sports" },
-  { type: "image", src: "/images/local-2.png", alt: "Interior de la tienda" },
-  { type: "image", src: "/images/local-3.png", alt: "Exhibición de productos" },
+  { type: "image", src: "/images/local-1.jpeg", alt: "Fachada de Apolo Sports" },
+  { type: "image", src: "/images/local-2.jpeg", alt: "Interior de la tienda" },
+  { type: "image", src: "/images/local-3.jpeg", alt: "Exhibición de productos" },
   { type: "video", src: "/videos/local-tour.mp4", alt: "Recorrido por la tienda" },
 ];
 
