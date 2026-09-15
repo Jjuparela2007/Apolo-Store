@@ -1,6 +1,7 @@
 const db = require("../config/db");
 const Cart = require("./Cart");
 const ProductVariant = require("./ProductVariant");
+const { calculateTotalWithSurcharge } = require("../services/pricing.service");
 
 function generateOrderNumber() {
   const year = new Date().getFullYear();
@@ -54,7 +55,8 @@ const Order = {
     }
 
     const subtotal = items.reduce((sum, i) => sum + i.unit_price * i.quantity, 0);
-    const total = subtotal + shippingCost;
+    const netAmount = subtotal + shippingCost; // lo que realmente quieres recibir
+    const { surcharge: paymentSurcharge, total } = calculateTotalWithSurcharge(netAmount);
     const orderNumber = generateOrderNumber();
 
     const conn = await db.getConnection();
@@ -63,10 +65,10 @@ const Order = {
 
       const [orderResult] = await conn.query(
         `INSERT INTO orders
-          (order_number, customer_id, customer_email, status, subtotal, shipping_cost, total,
+          (order_number, customer_id, customer_email, status, subtotal, shipping_cost, payment_surcharge, total,
            shipping_address_line, shipping_city, shipping_department)
-         VALUES (?, ?, ?, 'pending_payment', ?, ?, ?, ?, ?, ?)`,
-        [orderNumber, customerId, customerEmail, subtotal, shippingCost, total,
+         VALUES (?, ?, ?, 'pending_payment', ?, ?, ?, ?, ?, ?, ?)`,
+        [orderNumber, customerId, customerEmail, subtotal, shippingCost, paymentSurcharge, total,
           shippingAddressLine, shippingCity, shippingDepartment]
       );
       const orderId = orderResult.insertId;
