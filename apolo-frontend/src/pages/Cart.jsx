@@ -1,8 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
-import { createOrder } from "../api/cart";
+import { createOrder, quoteOrder } from "../api/cart";
 import { getCheckoutSignature } from "../api/payments";
 
 function formatPrice(value) {
@@ -38,6 +38,18 @@ export default function Cart() {
   const [form, setForm] = useState({ shippingAddressLine: "", shippingCity: "", shippingDepartment: "" });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [quote, setQuote] = useState(null);
+
+  // Pide el desglose (subtotal + envío + recargo = total) apenas hay items en
+  // el carrito, para mostrarlo en el resumen antes de que el cliente confirme
+  // — así el monto que ve aquí es el mismo que se le va a cobrar en Wompi.
+  useEffect(() => {
+    if (!isAuthenticated || items.length === 0) return;
+    quoteOrder({ shippingCost: 0 })
+      .then(setQuote)
+      .catch(() => setQuote(null));
+  }, [isAuthenticated, items, subtotal]);
+
 
   if (!isAuthenticated) {
     return (
@@ -125,7 +137,23 @@ export default function Cart() {
         <h2 className="font-medium text-apolo-navy mb-4">Resumen</h2>
         <div className="flex justify-between text-sm mb-2">
           <span className="text-apolo-steel">Subtotal</span>
-          <span className="font-medium text-apolo-navy">{formatPrice(subtotal)}</span>
+          <span className="font-medium text-apolo-navy">{formatPrice(quote?.subtotal ?? subtotal)}</span>
+        </div>
+        <div className="flex justify-between text-sm mb-2">
+          <span className="text-apolo-steel">Envío</span>
+          <span className="font-medium text-apolo-navy">
+            {quote ? formatPrice(quote.shippingCost) : "Se calcula después"}
+          </span>
+        </div>
+        {quote && (
+          <div className="flex justify-between text-sm mb-2">
+            <span className="text-apolo-steel">Recargo por método de pago</span>
+            <span className="font-medium text-apolo-navy">{formatPrice(quote.paymentSurcharge)}</span>
+          </div>
+        )}
+        <div className="flex justify-between text-sm font-semibold text-apolo-navy border-t border-apolo-navy/10 mt-2 pt-2 mb-4">
+          <span>Total</span>
+          <span>{quote ? formatPrice(quote.total) : formatPrice(subtotal)}</span>
         </div>
         <p className="text-xs text-apolo-steel mb-4">El envío se calcula después de confirmar tu dirección.</p>
 

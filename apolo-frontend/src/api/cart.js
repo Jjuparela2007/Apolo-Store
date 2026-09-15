@@ -8,5 +8,6 @@ export const updateCartItem = (itemId, quantity) =>
 export const removeCartItem = (itemId) => client.delete(`/cart/items/${itemId}`).then((r) => r.data);
 
 export const createOrder = (data) => client.post("/orders", data).then((r) => r.data.order);
+export const quoteOrder = (data) => client.post("/orders/quote", data).then((r) => r.data.quote);
 export const getMyOrders = () => client.get("/orders").then((r) => r.data.orders);
 export const getOrder = (id) => client.get(`/orders/${id}`).then((r) => r.data.order);
