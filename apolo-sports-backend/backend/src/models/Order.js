@@ -113,9 +113,9 @@ const Order = {
           [item.variant_id, -item.quantity, orderId]
         );
         await conn.query(
-          `INSERT INTO order_items (order_id, variant_id, product_name, size, color, unit_price, quantity)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [orderId, item.variant_id, item.product_name, item.size, item.color, item.unit_price, item.quantity]
+          `INSERT INTO order_items (order_id, variant_id, product_name, thumbnail_url, size, color, unit_price, quantity)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [orderId, item.variant_id, item.product_name, item.thumbnail_url, item.size, item.color, item.unit_price, item.quantity]
         );
       }
 

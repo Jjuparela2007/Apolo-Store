@@ -67,8 +67,21 @@ export default function OrderDetail() {
               {order.items.map((item) => (
                 <tr key={item.id} className="border-b border-apolo-navy/5">
                   <td className="py-3">
-                    <p className="font-medium text-apolo-navy">{item.product_name}</p>
-                    <p className="text-apolo-steel text-xs">Talla {item.size} · {item.color} · x{item.quantity}</p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-apolo-ice rounded-lg overflow-hidden shrink-0">
+                        {item.thumbnail_url ? (
+                          <img src={item.thumbnail_url} alt={item.product_name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-apolo-steel/40 text-[10px] font-display">
+                            APOLO
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium text-apolo-navy">{item.product_name}</p>
+                        <p className="text-apolo-steel text-xs">Talla {item.size} · {item.color} · x{item.quantity}</p>
+                      </div>
+                    </div>
                   </td>
                   <td className="py-3 text-right font-medium text-apolo-navy">
                     {formatPrice(item.unit_price * item.quantity)}
