@@ -8,5 +8,6 @@ router.use(requireCustomerAuth);
 router.post("/", createOrder);
 router.get("/", listMyOrders);
 router.get("/:id", getOrder);
+router.post("/orders/quote", authenticateCustomer, quoteOrder);
 
 module.exports = router;
