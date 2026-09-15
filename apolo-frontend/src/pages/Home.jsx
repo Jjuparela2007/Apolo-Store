@@ -169,9 +169,9 @@ export default function Home() {
           </div>
           <div
             className="aspect-video md:aspect-square rounded-xl bg-apolo-navy-light bg-cover bg-center"
-            style={{ backgroundImage: "url(/images/about-apolo.png)" }}
+            style={{ backgroundImage: "url(/images/about-apolo.jpeg)" }}
           >
-            {/* Foto de equipo/marca — coloca tu archivo en public/images/about-apolo.png */}
+            {/* Foto de equipo/marca — coloca tu archivo en public/images/about-apolo.jpeg */}
           </div>
         </div>
       </section>
