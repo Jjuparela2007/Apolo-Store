@@ -7,6 +7,13 @@ const VALID_STATUSES = [
   "pending_payment", "paid", "processing", "shipped", "delivered", "cancelled", "refunded",
 ];
 
+// POST /api/orders/quote  (requiere sesión de cliente — previsualiza el total con recargo, sin crear la orden)
+const quoteOrder = asyncHandler(async (req, res) => {
+  const { shippingCost } = req.body;
+  const quote = await Order.quote({ customerId: req.customer.id, shippingCost: shippingCost || 0 });
+  res.json({ quote });
+});
+
 // POST /api/orders  (checkout — requiere sesión de cliente; toma el carrito actual)
 const createOrder = asyncHandler(async (req, res) => {
   requireFields(req.body, ["shippingAddressLine", "shippingCity", "shippingDepartment"]);
@@ -86,4 +93,4 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   res.json({ order });
 });
 
-module.exports = { createOrder, getOrder, listMyOrders, listOrders, getOrderAdmin, updateOrderStatus };
+module.exports = { createOrder, getOrder, listMyOrders, listOrders, getOrderAdmin, updateOrderStatus, quoteOrder };

@@ -44,6 +44,24 @@ const Order = {
     return rows;
   },
 
+  // Calcula el desglose (subtotal + envío + recargo = total) SIN crear la
+  // orden todavía — para mostrarlo en el resumen del checkout antes de que
+  // el cliente confirme y se abra Wompi.
+  async quote({ customerId, shippingCost = 0 }) {
+    const { items } = await Cart.getContents(customerId);
+    if (!items.length) {
+      const err = new Error("El carrito está vacío");
+      err.status = 400;
+      throw err;
+    }
+
+    const subtotal = items.reduce((sum, i) => sum + i.unit_price * i.quantity, 0);
+    const netAmount = subtotal + shippingCost;
+    const { surcharge: paymentSurcharge, total } = calculateTotalWithSurcharge(netAmount);
+
+    return { subtotal, shippingCost, paymentSurcharge, total };
+  },
+
   // Crea la orden a partir del carrito ACTUAL del cliente: valida stock, lo reserva,
   // copia los items a order_items, y vacía el carrito — todo en una transacción.
   async createFromCart({ customerId, customerEmail, shippingAddressLine, shippingCity, shippingDepartment, shippingCost = 0 }) {
