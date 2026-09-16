@@ -126,10 +126,12 @@ export default function ProductDetail() {
 
         {product.short_description && <p className="text-apolo-steel mb-6">{product.short_description}</p>}
 
-        <div className="text-sm text-apolo-steel mb-6 space-y-1">
-          {product.brand && <p><span className="font-medium text-apolo-navy">Marca:</span> {product.brand}</p>}
-          {product.sku && <p><span className="font-medium text-apolo-navy">SKU:</span> {product.sku}</p>}
-        </div>
+        {product.description && (
+          <div className="mb-6">
+            <h3 className="font-medium text-apolo-navy mb-2">Descripción</h3>
+            <p className="text-apolo-steel whitespace-pre-line">{product.description}</p>
+          </div>
+        )}
 
         {colors.length > 0 && (
           <div className="mb-6">
@@ -201,13 +203,6 @@ export default function ProductDetail() {
           {status === "needs-login" && "Redirigiendo…"}
           {!status && "Agregar al carrito"}
         </button>
-
-        {product.description && (
-          <div className="mt-8 pt-8 border-t border-apolo-navy/10">
-            <h3 className="font-medium text-apolo-navy mb-2">Descripción</h3>
-            <p className="text-apolo-steel whitespace-pre-line">{product.description}</p>
-          </div>
-        )}
       </div>
     </div>
   );
