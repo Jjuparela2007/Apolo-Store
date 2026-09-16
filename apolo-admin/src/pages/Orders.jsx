@@ -28,23 +28,31 @@ function formatPrice(value) {
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [status, setStatus] = useState("");
+  const [channel, setChannel] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
-    getOrders({ status: status || undefined }).then(setOrders).finally(() => setLoading(false));
-  }, [status]);
+    getOrders({ status: status || undefined, channel: channel || undefined }).then(setOrders).finally(() => setLoading(false));
+  }, [status, channel]);
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display font-bold text-3xl text-apolo-navy">Pedidos</h1>
-        <select value={status} onChange={(e) => setStatus(e.target.value)} className="border border-apolo-navy/20 rounded-lg px-3 py-2 text-sm">
-          <option value="">Todos los estados</option>
-          {Object.entries(STATUS_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>{label}</option>
-          ))}
-        </select>
+        <div className="flex gap-2">
+          <select value={channel} onChange={(e) => setChannel(e.target.value)} className="border border-apolo-navy/20 rounded-lg px-3 py-2 text-sm">
+            <option value="">Todos los canales</option>
+            <option value="online">Solo online</option>
+            <option value="local">Solo en tienda</option>
+          </select>
+          <select value={status} onChange={(e) => setStatus(e.target.value)} className="border border-apolo-navy/20 rounded-lg px-3 py-2 text-sm">
+            <option value="">Todos los estados</option>
+            {Object.entries(STATUS_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl overflow-hidden">
@@ -58,6 +66,7 @@ export default function Orders() {
               <tr className="text-left text-apolo-steel border-b bg-apolo-ice/50">
                 <th className="p-4">ID Pedido</th>
                 <th className="p-4">Cliente</th>
+                <th className="p-4">Canal</th>
                 <th className="p-4">Fecha</th>
                 <th className="p-4">Total</th>
                 <th className="p-4">Estado</th>
@@ -68,7 +77,12 @@ export default function Orders() {
               {orders.map((o) => (
                 <tr key={o.id} className="border-b border-apolo-navy/5">
                   <td className="p-4 font-medium text-apolo-navy">{o.order_number}</td>
-                  <td className="p-4 text-apolo-steel">{o.customer_email}</td>
+                  <td className="p-4 text-apolo-steel">{o.customer_email || o.walk_in_customer_name || "—"}</td>
+                  <td className="p-4">
+                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${o.channel === "local" ? "bg-purple-100 text-purple-700" : "bg-apolo-blue/10 text-apolo-blue"}`}>
+                      {o.channel === "local" ? "En tienda" : "Online"}
+                    </span>
+                  </td>
                   <td className="p-4 text-apolo-steel">{new Date(o.created_at).toLocaleDateString("es-CO")}</td>
                   <td className="p-4">{formatPrice(o.total)}</td>
                   <td className="p-4">

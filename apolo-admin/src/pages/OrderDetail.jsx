@@ -54,9 +54,14 @@ export default function OrderDetail() {
       <Link to="/pedidos" className="text-sm text-apolo-steel hover:text-apolo-navy">← Volver a Pedidos</Link>
       <div className="flex items-center justify-between mb-6 mt-2">
         <h1 className="font-display font-bold text-3xl text-apolo-navy">{order.order_number}</h1>
-        <span className="text-sm font-medium px-3 py-1.5 rounded-full bg-apolo-blue/10 text-apolo-blue">
-          {STATUS_LABELS[order.status] || order.status}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className={`text-sm font-medium px-3 py-1.5 rounded-full ${order.channel === "local" ? "bg-purple-100 text-purple-700" : "bg-apolo-blue/10 text-apolo-blue"}`}>
+            {order.channel === "local" ? "Venta en tienda" : "Pedido online"}
+          </span>
+          <span className="text-sm font-medium px-3 py-1.5 rounded-full bg-apolo-blue/10 text-apolo-blue">
+            {STATUS_LABELS[order.status] || order.status}
+          </span>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -67,21 +72,8 @@ export default function OrderDetail() {
               {order.items.map((item) => (
                 <tr key={item.id} className="border-b border-apolo-navy/5">
                   <td className="py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-apolo-ice rounded-lg overflow-hidden shrink-0">
-                        {item.thumbnail_url ? (
-                          <img src={item.thumbnail_url} alt={item.product_name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-apolo-steel/40 text-[10px] font-display">
-                            APOLO
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-apolo-navy">{item.product_name}</p>
-                        <p className="text-apolo-steel text-xs">Talla {item.size} · {item.color} · x{item.quantity}</p>
-                      </div>
-                    </div>
+                    <p className="font-medium text-apolo-navy">{item.product_name}</p>
+                    <p className="text-apolo-steel text-xs">Talla {item.size} · {item.color} · x{item.quantity}</p>
                   </td>
                   <td className="py-3 text-right font-medium text-apolo-navy">
                     {formatPrice(item.unit_price * item.quantity)}
@@ -121,13 +113,22 @@ export default function OrderDetail() {
 
           <div className="bg-white rounded-xl p-6">
             <h2 className="font-medium text-apolo-navy mb-2">Cliente</h2>
-            <p className="text-sm text-apolo-steel">{order.customer_email}</p>
+            {order.channel === "local" ? (
+              <>
+                <p className="text-sm text-apolo-steel">{order.walk_in_customer_name || "Cliente de mostrador (sin nombre)"}</p>
+                {order.walk_in_customer_phone && <p className="text-sm text-apolo-steel">{order.walk_in_customer_phone}</p>}
+              </>
+            ) : (
+              <p className="text-sm text-apolo-steel">{order.customer_email}</p>
+            )}
           </div>
-          <div className="bg-white rounded-xl p-6">
-            <h2 className="font-medium text-apolo-navy mb-2">Envío</h2>
-            <p className="text-sm text-apolo-steel">{order.shipping_address_line}</p>
-            <p className="text-sm text-apolo-steel">{order.shipping_city}, {order.shipping_department}</p>
-          </div>
+          {order.channel === "online" && (
+            <div className="bg-white rounded-xl p-6">
+              <h2 className="font-medium text-apolo-navy mb-2">Envío</h2>
+              <p className="text-sm text-apolo-steel">{order.shipping_address_line}</p>
+              <p className="text-sm text-apolo-steel">{order.shipping_city}, {order.shipping_department}</p>
+            </div>
+          )}
           {order.payments?.length > 0 && (
             <div className="bg-white rounded-xl p-6">
               <h2 className="font-medium text-apolo-navy mb-2">Pagos</h2>

@@ -42,6 +42,7 @@ export const getLowStock = () => client.get("/admin/inventory/low-stock").then((
 export const getOrders = (params = {}) => client.get("/admin/orders", { params }).then((r) => r.data.orders);
 export const getOrder = (id) => client.get(`/admin/orders/${id}`).then((r) => r.data.order);
 export const updateOrderStatus = (id, status) => client.put(`/admin/orders/${id}/status`, { status }).then((r) => r.data.order);
+export const createManualSale = (data) => client.post("/admin/orders/manual", data).then((r) => r.data.order);
 
 // Clientes
 export const getCustomers = (params = {}) => client.get("/admin/customers", { params }).then((r) => r.data);

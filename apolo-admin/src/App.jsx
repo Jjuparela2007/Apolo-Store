@@ -11,6 +11,7 @@ import Products from "./pages/Products";
 import ProductForm from "./pages/ProductForm";
 import Orders from "./pages/Orders";
 import OrderDetail from "./pages/OrderDetail";
+import NewSale from "./pages/NewSale";
 import Customers from "./pages/Customers";
 import CustomerForm from "./pages/CustomerForm";
 import CustomerDetail from "./pages/CustomerDetail";
@@ -32,6 +33,7 @@ export default function App() {
           <Route path="/productos/:id" element={<RequireAuth><ProductForm /></RequireAuth>} />
           <Route path="/pedidos" element={<RequireAuth><Orders /></RequireAuth>} />
           <Route path="/pedidos/:id" element={<RequireAuth><OrderDetail /></RequireAuth>} />
+          <Route path="/ventas/nueva" element={<RequireAuth><NewSale /></RequireAuth>} />
           <Route path="/clientes" element={<RequireAuth><Customers /></RequireAuth>} />
           <Route path="/clientes/nuevo" element={<RequireAuth><CustomerForm /></RequireAuth>} />
           <Route path="/clientes/:id" element={<RequireAuth><CustomerDetail /></RequireAuth>} />
