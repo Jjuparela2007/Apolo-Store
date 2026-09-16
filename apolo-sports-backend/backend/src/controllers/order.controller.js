@@ -60,7 +60,7 @@ const listOrders = asyncHandler(async (req, res) => {
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const createManualSale = asyncHandler(async (req, res) => {
-  requireFields(req.body, ["items", "paymentMethod", "customerEmail"]);
+  requireFields(req.body, ["items", "paymentMethod"]);
   const { items, paymentMethod, customerEmail, customerName, customerPhone } = req.body;
 
   if (!Array.isArray(items) || items.length === 0) {
@@ -73,7 +73,8 @@ const createManualSale = asyncHandler(async (req, res) => {
     err.status = 400;
     throw err;
   }
-  if (!EMAIL_REGEX.test(customerEmail)) {
+  // El correo es opcional (venta anónima) — pero si viene, debe tener formato válido.
+  if (customerEmail && !EMAIL_REGEX.test(customerEmail)) {
     const err = new Error("El correo del cliente no es válido");
     err.status = 400;
     throw err;

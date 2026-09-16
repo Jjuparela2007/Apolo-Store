@@ -161,40 +161,40 @@ const Order = {
       err.status = 400;
       throw err;
     }
-    if (!customerEmail) {
-      const err = new Error("El correo del cliente es obligatorio");
-      err.status = 400;
-      throw err;
-    }
 
-    const normalizedEmail = customerEmail.trim().toLowerCase();
+    const normalizedEmail = customerEmail ? customerEmail.trim().toLowerCase() : null;
     const orderNumber = generateOrderNumber();
 
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
 
-      // FOR UPDATE evita que dos ventas simultáneas con el mismo correo nuevo
-      // terminen creando dos clientes duplicados.
+      // Venta anónima (el cliente no quiso dar su correo): no se toca la tabla
+      // customers, el pedido queda sin customer_id — igual que antes de este cambio.
       let isNewCustomer = false;
-      const [[existingCustomer]] = await conn.query(
-        `SELECT id FROM customers WHERE email = ? FOR UPDATE`,
-        [normalizedEmail]
-      );
+      let customerId = null;
 
-      let customerId;
-      if (existingCustomer) {
-        customerId = existingCustomer.id;
-      } else {
-        isNewCustomer = true;
-        const randomPassword = crypto.randomBytes(32).toString("hex");
-        const passwordHash = bcrypt.hashSync(randomPassword, 10);
-        const [customerResult] = await conn.query(
-          `INSERT INTO customers (email, password_hash, full_name, phone)
-           VALUES (?, ?, ?, ?)`,
-          [normalizedEmail, passwordHash, customerName || "Cliente mostrador", customerPhone || null]
+      if (normalizedEmail) {
+        // FOR UPDATE evita que dos ventas simultáneas con el mismo correo nuevo
+        // terminen creando dos clientes duplicados.
+        const [[existingCustomer]] = await conn.query(
+          `SELECT id FROM customers WHERE email = ? FOR UPDATE`,
+          [normalizedEmail]
         );
-        customerId = customerResult.insertId;
+
+        if (existingCustomer) {
+          customerId = existingCustomer.id;
+        } else {
+          isNewCustomer = true;
+          const randomPassword = crypto.randomBytes(32).toString("hex");
+          const passwordHash = bcrypt.hashSync(randomPassword, 10);
+          const [customerResult] = await conn.query(
+            `INSERT INTO customers (email, password_hash, full_name, phone)
+             VALUES (?, ?, ?, ?)`,
+            [normalizedEmail, passwordHash, customerName || "Cliente mostrador", customerPhone || null]
+          );
+          customerId = customerResult.insertId;
+        }
       }
 
       let subtotal = 0;

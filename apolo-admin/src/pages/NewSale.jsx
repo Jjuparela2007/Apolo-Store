@@ -22,6 +22,7 @@ export default function NewSale() {
   const [items, setItems] = useState([]); // { variantId, productName, size, color, unitPrice, quantity, stock }
   const [paymentMethod, setPaymentMethod] = useState("efectivo");
   const [customerEmail, setCustomerEmail] = useState("");
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
 
@@ -81,8 +82,8 @@ export default function NewSale() {
       setError("Agrega al menos un producto antes de registrar la venta.");
       return;
     }
-    if (!customerEmail.trim()) {
-      setError("El correo del cliente es obligatorio.");
+    if (!isAnonymous && !customerEmail.trim()) {
+      setError("El correo del cliente es obligatorio (o marca \"Cliente anónimo\").");
       return;
     }
     setSubmitting(true);
@@ -91,7 +92,7 @@ export default function NewSale() {
       const order = await createManualSale({
         items: items.map((i) => ({ variantId: i.variantId, quantity: i.quantity })),
         paymentMethod,
-        customerEmail: customerEmail.trim(),
+        customerEmail: isAnonymous ? undefined : customerEmail.trim(),
         customerName: customerName || undefined,
         customerPhone: customerPhone || undefined,
       });
@@ -101,6 +102,7 @@ export default function NewSale() {
       });
       setItems([]);
       setCustomerEmail("");
+      setIsAnonymous(false);
       setCustomerName("");
       setCustomerPhone("");
       setResults([]);
@@ -205,18 +207,37 @@ export default function NewSale() {
               </select>
             </div>
             <div>
-              <label className="text-xs text-apolo-steel mb-1 block">Correo del cliente</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs text-apolo-steel">Correo del cliente</label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAnonymous((v) => !v);
+                    if (!isAnonymous) setCustomerEmail("");
+                  }}
+                  className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${
+                    isAnonymous
+                      ? "bg-apolo-navy text-white border-apolo-navy"
+                      : "text-apolo-steel border-apolo-navy/20 hover:bg-apolo-ice"
+                  }`}
+                >
+                  {isAnonymous ? "✓ Cliente anónimo" : "Cliente anónimo"}
+                </button>
+              </div>
               <input
                 type="email"
-                required
+                required={!isAnonymous}
+                disabled={isAnonymous}
                 value={customerEmail}
                 onChange={(e) => setCustomerEmail(e.target.value)}
-                placeholder="cliente@correo.com"
-                className="w-full border border-apolo-navy/20 rounded-lg px-3 py-2 text-sm"
+                placeholder={isAnonymous ? "Venta sin datos del cliente" : "cliente@correo.com"}
+                className="w-full border border-apolo-navy/20 rounded-lg px-3 py-2 text-sm disabled:bg-apolo-ice disabled:text-apolo-steel"
               />
-              <p className="text-[11px] text-apolo-steel mt-1">
-                Si ya está registrado, la venta se guarda en su historial. Si no, se le crea una cuenta.
-              </p>
+              {!isAnonymous && (
+                <p className="text-[11px] text-apolo-steel mt-1">
+                  Si ya está registrado, la venta se guarda en su historial. Si no, se le crea una cuenta.
+                </p>
+              )}
             </div>
             <div>
               <label className="text-xs text-apolo-steel mb-1 block">Nombre del cliente (opcional)</label>
