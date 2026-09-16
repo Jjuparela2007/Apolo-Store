@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getProductBySlug } from "../api/products";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
+import { useWishlist } from "../context/WishlistContext";
 
 function formatPrice(value) {
   return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(value);
@@ -13,6 +14,7 @@ export default function ProductDetail() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { addItem } = useCart();
+  const { isFavorite: checkIsFavorite, toggleFavorite } = useWishlist();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -22,9 +24,7 @@ export default function ProductDetail() {
   const [isZooming, setIsZooming] = useState(false);
   const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
   const [status, setStatus] = useState(null); // 'adding' | 'added' | 'error' | 'needs-login'
-  // TODO: conectar a la lógica real de wishlist (wishlist_items) cuando me pases
-  // el componente/contexto que ya usa el corazón en la tarjeta del catálogo.
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteBusy, setFavoriteBusy] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -64,6 +64,22 @@ export default function ProductDetail() {
       setTimeout(() => setStatus(null), 2000);
     } catch {
       setStatus("error");
+    }
+  };
+
+  const handleToggleFavorite = async () => {
+    if (!isAuthenticated) {
+      setStatus("needs-login");
+      setTimeout(() => {
+        navigate("/login", { state: { from: `/producto/${slug}` } });
+      }, 3000);
+      return;
+    }
+    setFavoriteBusy(true);
+    try {
+      await toggleFavorite(product.id);
+    } finally {
+      setFavoriteBusy(false);
     }
   };
 
@@ -221,16 +237,17 @@ export default function ProductDetail() {
 
         <button
           type="button"
-          onClick={() => setIsFavorite((v) => !v)}
-          className={`w-full flex items-center justify-center gap-2 mt-3 py-3 rounded-full text-sm font-semibold border transition-all duration-200 ease-out hover:scale-[1.01] active:scale-[0.98] ${
-            isFavorite
+          onClick={handleToggleFavorite}
+          disabled={favoriteBusy}
+          className={`w-full flex items-center justify-center gap-2 mt-3 py-3 rounded-full text-sm font-semibold border transition-all duration-200 ease-out hover:scale-[1.01] active:scale-[0.98] disabled:opacity-60 ${
+            checkIsFavorite(product.id)
               ? "border-red-200 bg-red-50 text-red-600"
               : "border-apolo-navy/20 text-apolo-navy hover:border-apolo-navy/40"
           }`}
         >
           <svg
-            className={`w-5 h-5 transition-transform duration-200 ${isFavorite ? "scale-110" : ""}`}
-            fill={isFavorite ? "currentColor" : "none"}
+            className={`w-5 h-5 transition-transform duration-200 ${checkIsFavorite(product.id) ? "scale-110" : ""}`}
+            fill={checkIsFavorite(product.id) ? "currentColor" : "none"}
             viewBox="0 0 24 24"
             stroke="currentColor"
             strokeWidth={1.8}
@@ -241,7 +258,7 @@ export default function ProductDetail() {
               d="M12 20.25c-.28 0-.55-.09-.78-.27C7.9 17.45 3.75 13.9 3.75 9.75 3.75 7.13 5.88 5 8.5 5c1.4 0 2.73.63 3.5 1.68C12.77 5.63 14.1 5 15.5 5c2.62 0 4.75 2.13 4.75 4.75 0 4.15-4.15 7.7-7.47 10.23-.23.18-.5.27-.78.27z"
             />
           </svg>
-          {isFavorite ? "Guardado en favoritos" : "Agregar a favoritos"}
+          {checkIsFavorite(product.id) ? "Guardado en favoritos" : "Agregar a favoritos"}
         </button>
       </div>
     </div>
