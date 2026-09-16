@@ -22,16 +22,14 @@ const createOrder = asyncHandler(async (req, res) => {
   res.status(201).json({ order });
 });
 
-// POST /api/orders/quote  (cotiza el pedido sin crearlo — totales/envío antes del checkout)
-// NOTA: asume que existe Order.quoteFromCart en el modelo. Si no existe todavía,
-// dime qué debe devolver la cotización (solo total+envío, o desglose de impuestos, etc.)
+// POST /api/orders/quote  (cotiza el pedido sin crearlo — el backend calcula el envío según la ciudad)
 const quoteOrder = asyncHandler(async (req, res) => {
   requireFields(req.body, ["shippingAddressLine", "shippingCity", "shippingDepartment"]);
-  const { shippingAddressLine, shippingCity, shippingDepartment, shippingCost } = req.body;
+  const { shippingCity } = req.body;
 
   const quote = await Order.quoteFromCart({
     customerId: req.customer.id,
-    shippingAddressLine, shippingCity, shippingDepartment, shippingCost,
+    shippingCity,
   });
 
   res.json({ quote });

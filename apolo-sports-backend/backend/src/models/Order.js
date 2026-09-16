@@ -8,6 +8,21 @@ function generateOrderNumber() {
   return `ORD-${year}-${random}`;
 }
 
+// Normaliza el nombre de una ciudad para comparar sin importar mayúsculas,
+// tildes o espacios sobrantes: "Bogotá", "BOGOTA", " bogotá " → "bogota"
+function normalizarCiudad(ciudad = "") {
+  return ciudad
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
+// Costo de envío según ciudad: Bogotá tiene tarifa fija más baja, el resto del país paga más.
+function calcularCostoEnvio(ciudad) {
+  return normalizarCiudad(ciudad) === "bogota" ? 15000 : 35000;
+}
+
 const Order = {
   async findById(id) {
     const [[order]] = await db.query(`SELECT * FROM orders WHERE id = ?`, [id]);
@@ -110,6 +125,23 @@ const Order = {
     } finally {
       conn.release();
     }
+  },
+
+  // Cotiza el carrito actual del cliente SIN crear la orden ni tocar stock:
+  // solo calcula subtotal, envío (según ciudad) y total, para mostrarlos antes del checkout.
+  async quoteFromCart({ customerId, shippingCity }) {
+    const { items } = await Cart.getContents(customerId);
+    if (!items.length) {
+      const err = new Error("El carrito está vacío");
+      err.status = 400;
+      throw err;
+    }
+
+    const subtotal = items.reduce((sum, i) => sum + i.unit_price * i.quantity, 0);
+    const shippingCost = calcularCostoEnvio(shippingCity);
+    const total = subtotal + shippingCost;
+
+    return { subtotal, shippingCost, total };
   },
 
   // Venta registrada manualmente por el admin (mostrador/local físico) — a diferencia
