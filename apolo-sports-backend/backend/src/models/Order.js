@@ -14,7 +14,16 @@ const Order = {
   async findById(id) {
     const [[order]] = await db.query(`SELECT * FROM orders WHERE id = ?`, [id]);
     if (!order) return null;
-    const [items] = await db.query(`SELECT * FROM order_items WHERE order_id = ?`, [id]);
+    const [items] = await db.query(
+      `SELECT oi.*,
+              (SELECT pm.url FROM product_media pm
+               WHERE pm.product_id = pv.product_id AND pm.media_type = 'image'
+               ORDER BY pm.sort_order ASC LIMIT 1) AS thumbnail_url
+       FROM order_items oi
+       LEFT JOIN product_variants pv ON pv.id = oi.variant_id
+       WHERE oi.order_id = ?`,
+      [id]
+    );
     const [payments] = await db.query(`SELECT * FROM payments WHERE order_id = ?`, [id]);
     return { ...order, items, payments };
   },
