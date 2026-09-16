@@ -134,8 +134,8 @@ export default function ProductDetail() {
       </div>
 
       <div>
-        <p className="text-sm text-apolo-steel mb-1">{product.category_name}</p>
-        <h1 className="font-display font-bold text-4xl text-apolo-navy mb-3">{product.name}</h1>
+        <p className="text-xs font-semibold text-apolo-steel uppercase tracking-widest mb-2">{product.category_name}</p>
+        <h1 className="font-display font-bold text-5xl leading-tight tracking-tight text-apolo-navy mb-3">{product.name}</h1>
         <div className="flex items-baseline gap-3 mb-6">
           <p className="text-2xl font-semibold text-apolo-navy">{formatPrice(price)}</p>
           {product.offer_price && (
@@ -222,9 +222,17 @@ export default function ProductDetail() {
             }`}
         >
           <span className={`inline-flex items-center justify-center gap-2 transition-transform duration-200 ${status === "added" ? "scale-105" : ""}`}>
-            {status === "added" && (
+            {status === "added" ? (
               <svg className="w-5 h-5 animate-[bounce_0.5s_ease-in-out_1]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+            ) : status === "adding" || status === "needs-login" ? null : (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M2.25 3h1.386c.51 0 .955.343 1.087.836l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 1.895-4.75 2.278-7.286a1.125 1.125 0 00-1.11-1.293H5.51M6.106 5.273L5.106 1.5M7.5 14.25L5.106 5.273M9.75 18.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm9 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
+                />
               </svg>
             )}
             {status === "adding" && "Agregando…"}
