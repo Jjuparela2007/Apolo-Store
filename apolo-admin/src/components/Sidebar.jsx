@@ -15,12 +15,11 @@ const NAV_ITEMS = [
 export default function Sidebar() {
   return (
     <aside className="w-64 bg-apolo-navy text-white flex flex-col shrink-0 min-h-screen">
-      <div className="p-6 flex items-center gap-2">
-        <Logo />
-        
+      <div>
+        <Logo className="w-full h-auto block" />
       </div>
 
-      <nav className="flex-1 px-3 space-y-1 mt-2">
+      <nav className="flex-1 px-3 space-y-1 mt-4">
         {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
