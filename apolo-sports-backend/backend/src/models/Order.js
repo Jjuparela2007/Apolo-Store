@@ -254,7 +254,7 @@ const Order = {
       await conn.query(
         `INSERT INTO payments (order_id, provider, provider_tx_id, payment_method, status, amount, raw_response)
          VALUES (?, 'manual', ?, ?, 'approved', ?, ?)`,
-        [orderId, `manual-${orderId}`, paymentMethod, subtotal, JSON.stringify({ registeredByAdminId: adminId })]
+        [orderId, `manual-${orderId}-${Date.now()}`, paymentMethod, subtotal, JSON.stringify({ registeredByAdminId: adminId })]
       );
 
       await conn.commit();
