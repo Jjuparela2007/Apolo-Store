@@ -22,6 +22,9 @@ export default function ProductDetail() {
   const [isZooming, setIsZooming] = useState(false);
   const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
   const [status, setStatus] = useState(null); // 'adding' | 'added' | 'error' | 'needs-login'
+  // TODO: conectar a la lógica real de wishlist (wishlist_items) cuando me pases
+  // el componente/contexto que ya usa el corazón en la tarjeta del catálogo.
+  const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -195,13 +198,50 @@ export default function ProductDetail() {
         <button
           onClick={handleAddToCart}
           disabled={(!activeVariant && isAuthenticated) || activeVariant?.stock === 0 || status === "adding" || status === "needs-login"}
-          className="w-full bg-apolo-blue hover:bg-apolo-blue-light disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-full transition-colors"
+          className={`w-full text-white font-semibold py-3 rounded-full transition-all duration-200 ease-out
+            disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100
+            ${status === "added"
+              ? "bg-green-600 scale-100"
+              : "bg-apolo-blue hover:bg-apolo-blue-light hover:scale-[1.02] active:scale-[0.98]"
+            }`}
         >
-          {status === "adding" && "Agregando…"}
-          {status === "added" && "¡Agregado al carrito!"}
-          {status === "error" && "Error, intenta de nuevo"}
-          {status === "needs-login" && "Redirigiendo…"}
-          {!status && "Agregar al carrito"}
+          <span className={`inline-flex items-center justify-center gap-2 transition-transform duration-200 ${status === "added" ? "scale-105" : ""}`}>
+            {status === "added" && (
+              <svg className="w-5 h-5 animate-[bounce_0.5s_ease-in-out_1]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+            )}
+            {status === "adding" && "Agregando…"}
+            {status === "added" && "¡Agregado al carrito!"}
+            {status === "error" && "Error, intenta de nuevo"}
+            {status === "needs-login" && "Redirigiendo…"}
+            {!status && "Agregar al carrito"}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setIsFavorite((v) => !v)}
+          className={`w-full flex items-center justify-center gap-2 mt-3 py-3 rounded-full text-sm font-semibold border transition-all duration-200 ease-out hover:scale-[1.01] active:scale-[0.98] ${
+            isFavorite
+              ? "border-red-200 bg-red-50 text-red-600"
+              : "border-apolo-navy/20 text-apolo-navy hover:border-apolo-navy/40"
+          }`}
+        >
+          <svg
+            className={`w-5 h-5 transition-transform duration-200 ${isFavorite ? "scale-110" : ""}`}
+            fill={isFavorite ? "currentColor" : "none"}
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.8}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 20.25c-.28 0-.55-.09-.78-.27C7.9 17.45 3.75 13.9 3.75 9.75 3.75 7.13 5.88 5 8.5 5c1.4 0 2.73.63 3.5 1.68C12.77 5.63 14.1 5 15.5 5c2.62 0 4.75 2.13 4.75 4.75 0 4.15-4.15 7.7-7.47 10.23-.23.18-.5.27-.78.27z"
+            />
+          </svg>
+          {isFavorite ? "Guardado en favoritos" : "Agregar a favoritos"}
         </button>
       </div>
     </div>
