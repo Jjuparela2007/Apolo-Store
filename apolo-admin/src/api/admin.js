@@ -23,6 +23,7 @@ export const deleteProduct = (id) => client.delete(`/products/${id}`);
 
 export const addVariant = (productId, data) => client.post(`/products/${productId}/variants`, data).then((r) => r.data.variant);
 export const updateVariant = (variantId, data) => client.put(`/products/variants/${variantId}`, data).then((r) => r.data.variant);
+export const setVariantVisibility = (variantId, isActive) => client.patch(`/products/variants/${variantId}/visibility`, { isActive }).then((r) => r.data.variant);
 export const deleteVariant = (variantId) => client.delete(`/products/variants/${variantId}`);
 
 export const uploadProductImages = (productId, files) => {
