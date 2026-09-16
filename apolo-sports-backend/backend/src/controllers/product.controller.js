@@ -77,6 +77,15 @@ const updateVariant = asyncHandler(async (req, res) => {
   res.json({ variant });
 });
 
+// PATCH /api/admin/products/variants/:variantId/visibility  (protegido)
+// Oculta o muestra la variante en la tienda sin borrarla — útil cuando ya no
+// queda inventario y no se puede eliminar por tener movimientos registrados.
+const setVariantVisibility = asyncHandler(async (req, res) => {
+  requireFields(req.body, ["isActive"]);
+  const variant = await ProductVariant.update(req.params.variantId, { isActive: req.body.isActive });
+  res.json({ variant });
+});
+
 // DELETE /api/admin/products/variants/:variantId  (protegido)
 const deleteVariant = asyncHandler(async (req, res) => {
   try {
@@ -143,5 +152,5 @@ const deleteImage = asyncHandler(async (req, res) => {
 
 module.exports = {
   listProducts, getProduct, getProductBySlug, createProduct, updateProduct, deleteProduct,
-  addVariant, updateVariant, deleteVariant, uploadImages, deleteImage,
+  addVariant, updateVariant, setVariantVisibility, deleteVariant, uploadImages, deleteImage,
 };

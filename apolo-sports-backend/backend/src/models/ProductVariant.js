@@ -24,11 +24,12 @@ const ProductVariant = {
       colorHex: "color_hex",
       stock: "stock",
       lowStockThreshold: "low_stock_threshold",
+      isActive: "is_active",
     };
     const updates = Object.keys(fields).filter((k) => fieldMap[k] !== undefined);
     if (updates.length === 0) return this.findById(id);
     const setClause = updates.map((k) => `${fieldMap[k]} = ?`).join(", ");
-    const values = updates.map((k) => fields[k]);
+    const values = updates.map((k) => (k === "isActive" ? (fields[k] ? 1 : 0) : fields[k]));
     await db.query(`UPDATE product_variants SET ${setClause} WHERE id = ?`, [...values, id]);
     return this.findById(id);
   },

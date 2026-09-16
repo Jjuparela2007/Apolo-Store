@@ -2,7 +2,7 @@ import { useEffect, useState, Fragment } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   getProduct, createProduct, updateProduct, getCategories,
-  addVariant, updateVariant, deleteVariant, uploadProductImages, deleteProductImage,
+  addVariant, updateVariant, setVariantVisibility, deleteVariant, uploadProductImages, deleteProductImage,
 } from "../api/admin";
 
 function slugify(text) {
@@ -148,7 +148,7 @@ export default function ProductForm() {
 
         <div className="space-y-6">
           <div className="bg-white rounded-xl p-6 space-y-4">
-            <h2 className="font-medium text-apolo-navy">Precios e ID producto</h2>
+            <h2 className="font-medium text-apolo-navy">Precios y SKU</h2>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs text-apolo-steel mb-1 block">Precio Base ($)</label>
@@ -170,7 +170,7 @@ export default function ProductForm() {
               </div>
             </div>
             <div>
-              <label className="text-xs text-apolo-steel mb-1 block">ID Producto</label>
+              <label className="text-xs text-apolo-steel mb-1 block">SKU</label>
               <input
                 required
                 value={form.sku}
@@ -342,6 +342,21 @@ function VariantsSection({ product, onUpdated }) {
     refresh();
   };
 
+  const [togglingId, setTogglingId] = useState(null);
+
+  const handleToggleVisibility = async (v) => {
+    setTogglingId(v.id);
+    setRowError((prev) => ({ ...prev, [v.id]: null }));
+    try {
+      await setVariantVisibility(v.id, !v.is_active);
+      refresh();
+    } catch (err) {
+      setRowError((prev) => ({ ...prev, [v.id]: err.response?.data?.error || "No pudimos actualizar la visibilidad." }));
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
   const startEdit = (v) => {
     setEditingId(v.id);
     setEditForm({ size: v.size, color: v.color, colorHex: v.color_hex || "#334155", stock: v.stock });
@@ -385,7 +400,7 @@ function VariantsSection({ product, onUpdated }) {
       const status = err.response?.status;
       const backendMsg = err.response?.data?.error;
       const message = status === 409 || status === 400
-        ? backendMsg || "Esta variante tiene movimientos de inventario asociados y no se puede eliminar. Usa \"Editar\" para modificarla en su lugar."
+        ? backendMsg || "Esta variante tiene movimientos de inventario asociados y no se puede eliminar. Puedes ocultarla en su lugar para que no se muestre en la tienda."
         : backendMsg || "No pudimos eliminar la variante.";
       setRowError((prev) => ({ ...prev, [variantId]: message }));
     } finally {
@@ -412,7 +427,7 @@ function VariantsSection({ product, onUpdated }) {
               const isEditing = editingId === v.id;
               return (
                 <Fragment key={v.id}>
-                <tr className="border-b border-apolo-navy/5 align-top">
+                <tr className={`border-b border-apolo-navy/5 align-top ${v.is_active === 0 ? "opacity-60" : ""}`}>
                   {isEditing ? (
                     <>
                       <td className="py-2 pr-2">
@@ -471,11 +486,25 @@ function VariantsSection({ product, onUpdated }) {
                             className="w-6 h-6 rounded-full border border-apolo-navy/20 p-0 cursor-pointer overflow-hidden"
                           />
                           {v.color}
+                          {v.is_active === 0 && (
+                            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                              Oculta
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="py-2 text-apolo-navy">{v.stock}</td>
                       <td className="py-2 text-right whitespace-nowrap">
                         <button type="button" onClick={() => startEdit(v)} className="text-apolo-blue text-xs font-medium hover:underline mr-3">Editar</button>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleVisibility(v)}
+                          disabled={togglingId === v.id}
+                          title={v.is_active === 0 ? "Mostrar de nuevo en la tienda" : "Ocultar de la tienda sin eliminarla"}
+                          className="text-apolo-steel text-xs font-medium hover:underline disabled:opacity-50 mr-3"
+                        >
+                          {togglingId === v.id ? "…" : v.is_active === 0 ? "Mostrar" : "Ocultar"}
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleRemove(v.id)}
@@ -491,7 +520,19 @@ function VariantsSection({ product, onUpdated }) {
                 {rowError[v.id] && (
                   <tr className="border-b border-apolo-navy/5">
                     <td colSpan={4} className="pt-1.5 pb-3">
-                      <p className="text-xs text-red-600 leading-relaxed max-w-md">{rowError[v.id]}</p>
+                      <p className="text-xs text-red-600 leading-relaxed max-w-md">
+                        {rowError[v.id]}
+                        {!isEditing && (
+                          <button
+                            type="button"
+                            onClick={() => handleToggleVisibility(v)}
+                            disabled={togglingId === v.id}
+                            className="ml-2 font-medium underline hover:no-underline disabled:opacity-50"
+                          >
+                            Ocultar ahora
+                          </button>
+                        )}
+                      </p>
                     </td>
                   </tr>
                 )}
