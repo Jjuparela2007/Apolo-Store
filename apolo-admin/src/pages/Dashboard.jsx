@@ -22,6 +22,15 @@ const STATUS_COLORS = {
   refunded: "#94A3B8",
 };
 
+const CHANNEL_LABELS = {
+  online: "Online",
+  local: "Tienda física",
+};
+const CHANNEL_COLORS = {
+  online: "#1E7FE8",
+  local: "#8B5CF6",
+};
+
 function formatPrice(value) {
   return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(value);
 }
@@ -155,6 +164,7 @@ export default function Dashboard() {
                 <th className="pb-2">ID Pedido</th>
                 <th className="pb-2">Fecha</th>
                 <th className="pb-2">Total</th>
+                <th className="pb-2">Canal</th>
                 <th className="pb-2">Estado</th>
               </tr>
             </thead>
@@ -171,6 +181,14 @@ export default function Dashboard() {
                   </td>
                   <td className="py-2 text-apolo-steel">{new Date(o.created_at).toLocaleDateString("es-CO")}</td>
                   <td className="py-2">{formatPrice(o.total)}</td>
+                  <td className="py-2">
+                    <span
+                      className="text-xs font-medium px-2 py-1 rounded-full"
+                      style={{ backgroundColor: `${CHANNEL_COLORS[o.channel] || "#94A3B8"}20`, color: CHANNEL_COLORS[o.channel] || "#64748B" }}
+                    >
+                      {CHANNEL_LABELS[o.channel] || o.channel || "—"}
+                    </span>
+                  </td>
                   <td className="py-2">
                     <span
                       className="text-xs font-medium px-2 py-1 rounded-full"
