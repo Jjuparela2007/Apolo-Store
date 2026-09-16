@@ -24,7 +24,7 @@ const createOrder = asyncHandler(async (req, res) => {
 
 // POST /api/orders/quote  (cotiza el pedido sin crearlo — el backend calcula el envío según la ciudad)
 const quoteOrder = asyncHandler(async (req, res) => {
-  requireFields(req.body, ["shippingAddressLine", "shippingCity", "shippingDepartment"]);
+  requireFields(req.body, ["shippingCity"]);
   const { shippingCity } = req.body;
 
   const quote = await Order.quoteFromCart({
