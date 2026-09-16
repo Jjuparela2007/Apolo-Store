@@ -24,7 +24,7 @@ const STATUS_COLORS = {
 
 const CHANNEL_LABELS = {
   online: "Online",
-  local: "Tienda física",
+  local: "En tienda",
 };
 const CHANNEL_COLORS = {
   online: "#1E7FE8",
