@@ -8,7 +8,7 @@ const Customer = {
 
   async findById(id) {
     const [[customer]] = await db.query(
-      `SELECT id, email, full_name, phone, email_verified, created_at FROM customers WHERE id = ?`,
+      `SELECT id, email, full_name, phone, email_verified, auth_provider, created_at FROM customers WHERE id = ?`,
       [id]
     );
     return customer || null;
@@ -29,7 +29,7 @@ const Customer = {
     const offset = (Math.max(Number(page) || 1, 1) - 1) * safeLimit;
 
     const [rows] = await db.query(
-      `SELECT c.id, c.email, c.full_name, c.phone, c.email_verified, c.created_at,
+      `SELECT c.id, c.email, c.full_name, c.phone, c.email_verified, c.auth_provider, c.created_at,
               (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.id) AS order_count,
               (SELECT COALESCE(SUM(o.total), 0) FROM orders o
                  WHERE o.customer_id = c.id
@@ -49,10 +49,11 @@ const Customer = {
     return { customers: rows, total, page: Number(page) || 1, limit: safeLimit };
   },
 
-  async create({ email, passwordHash, fullName, phone = null }) {
+  // authProvider: 'local' (default, con contraseña) o 'google' (sin contraseña, passwordHash null)
+  async create({ email, passwordHash = null, fullName, phone = null, authProvider = "local" }) {
     const [result] = await db.query(
-      `INSERT INTO customers (email, password_hash, full_name, phone) VALUES (?, ?, ?, ?)`,
-      [email, passwordHash, fullName, phone]
+      `INSERT INTO customers (email, password_hash, full_name, phone, auth_provider) VALUES (?, ?, ?, ?, ?)`,
+      [email, passwordHash, fullName, phone, authProvider]
     );
     return this.findById(result.insertId);
   },
