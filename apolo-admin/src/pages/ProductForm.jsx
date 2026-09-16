@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   getProduct, createProduct, updateProduct, getCategories,
@@ -411,7 +411,8 @@ function VariantsSection({ product, onUpdated }) {
             {product.variants.map((v) => {
               const isEditing = editingId === v.id;
               return (
-                <tr key={v.id} className="border-b border-apolo-navy/5 align-top">
+                <Fragment key={v.id}>
+                <tr className="border-b border-apolo-navy/5 align-top">
                   {isEditing ? (
                     <>
                       <td className="py-2 pr-2">
@@ -486,12 +487,15 @@ function VariantsSection({ product, onUpdated }) {
                       </td>
                     </>
                   )}
-                  {rowError[v.id] && (
-                    <td colSpan={4} className="pb-2">
-                      <p className="text-xs text-red-600">{rowError[v.id]}</p>
-                    </td>
-                  )}
                 </tr>
+                {rowError[v.id] && (
+                  <tr className="border-b border-apolo-navy/5">
+                    <td colSpan={4} className="pt-1.5 pb-3">
+                      <p className="text-xs text-red-600 leading-relaxed max-w-md">{rowError[v.id]}</p>
+                    </td>
+                  </tr>
+                )}
+                </Fragment>
               );
             })}
           </tbody>
