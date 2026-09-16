@@ -52,6 +52,7 @@ export default function NewSale() {
         {
           variantId: variant.id,
           productName: product.name,
+          thumbnailUrl: product.thumbnail_url,
           size: variant.size,
           color: variant.color,
           unitPrice: product.offer_price ?? product.base_price,
@@ -140,8 +141,17 @@ export default function NewSale() {
                   {items.map((i) => (
                     <tr key={i.variantId} className="border-b border-apolo-navy/5">
                       <td className="py-2">
-                        <p className="font-medium text-apolo-navy">{i.productName}</p>
-                        <p className="text-xs text-apolo-steel">Talla {i.size} · {i.color}</p>
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-apolo-ice rounded-lg overflow-hidden shrink-0">
+                            {i.thumbnailUrl && (
+                              <img src={i.thumbnailUrl} alt={i.productName} className="w-full h-full object-cover" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium text-apolo-navy">{i.productName}</p>
+                            <p className="text-xs text-apolo-steel">Talla {i.size} · {i.color}</p>
+                          </div>
+                        </div>
                       </td>
                       <td className="py-2">
                         <input
@@ -243,7 +253,14 @@ function ProductSearchResult({ product, onPick }) {
   return (
     <div className="border border-apolo-navy/10 rounded-lg">
       <button type="button" onClick={toggle} className="w-full flex items-center justify-between px-3 py-2 text-left">
-        <span className="text-sm font-medium text-apolo-navy">{product.name}</span>
+        <span className="flex items-center gap-3">
+          <span className="w-10 h-10 bg-apolo-ice rounded-lg overflow-hidden shrink-0 block">
+            {product.thumbnail_url && (
+              <img src={product.thumbnail_url} alt={product.name} className="w-full h-full object-cover" />
+            )}
+          </span>
+          <span className="text-sm font-medium text-apolo-navy">{product.name}</span>
+        </span>
         <span className="text-xs text-apolo-steel">{expanded ? "Ocultar" : "Ver tallas"}</span>
       </button>
       {expanded && (
