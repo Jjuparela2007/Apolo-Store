@@ -31,7 +31,6 @@ export default function StoreCarousel() {
                 className="w-full h-full object-cover"
                 autoPlay={i === index}
                 muted
-                loop
                 playsInline
                 controls
               />
