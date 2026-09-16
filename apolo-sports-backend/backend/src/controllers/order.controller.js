@@ -11,12 +11,12 @@ const VALID_PAYMENT_METHODS = ["efectivo", "tarjeta", "transferencia"];
 // POST /api/orders  (checkout — requiere sesión de cliente; toma el carrito actual)
 const createOrder = asyncHandler(async (req, res) => {
   requireFields(req.body, ["shippingAddressLine", "shippingCity", "shippingDepartment"]);
-  const { shippingAddressLine, shippingCity, shippingDepartment, shippingCost } = req.body;
+  const { shippingAddressLine, shippingCity, shippingDepartment } = req.body;
 
   const order = await Order.createFromCart({
     customerId: req.customer.id,
     customerEmail: req.customer.email,
-    shippingAddressLine, shippingCity, shippingDepartment, shippingCost,
+    shippingAddressLine, shippingCity, shippingDepartment,
   });
 
   res.status(201).json({ order });
@@ -24,14 +24,8 @@ const createOrder = asyncHandler(async (req, res) => {
 
 // POST /api/orders/quote  (cotiza el pedido sin crearlo — el backend calcula el envío según la ciudad)
 const quoteOrder = asyncHandler(async (req, res) => {
-  requireFields(req.body, ["shippingCity"]);
-  const { shippingCity } = req.body;
-
-  const quote = await Order.quoteFromCart({
-    customerId: req.customer.id,
-    shippingCity,
-  });
-
+  const { shippingCity, shippingDepartment } = req.body;
+  const quote = await Order.quote({ customerId: req.customer.id, shippingCity, shippingDepartment });
   res.json({ quote });
 });
 

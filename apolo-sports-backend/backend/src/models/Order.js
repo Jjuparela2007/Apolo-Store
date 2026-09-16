@@ -1,26 +1,13 @@
 const db = require("../config/db");
 const Cart = require("./Cart");
 const ProductVariant = require("./ProductVariant");
+const { getShippingCost } = require("../services/shipping.service");
+const { calculateTotalWithSurcharge } = require("../services/pricing.service");
 
 function generateOrderNumber() {
   const year = new Date().getFullYear();
   const random = Math.floor(100000 + Math.random() * 900000);
   return `ORD-${year}-${random}`;
-}
-
-// Normaliza el nombre de una ciudad para comparar sin importar mayúsculas,
-// tildes o espacios sobrantes: "Bogotá", "BOGOTA", " bogotá " → "bogota"
-function normalizarCiudad(ciudad = "") {
-  return ciudad
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLowerCase();
-}
-
-// Costo de envío según ciudad: Bogotá tiene tarifa fija más baja, el resto del país paga más.
-function calcularCostoEnvio(ciudad) {
-  return normalizarCiudad(ciudad) === "bogota" ? 15000 : 35000;
 }
 
 const Order = {
@@ -64,7 +51,7 @@ const Order = {
 
   // Crea la orden a partir del carrito ACTUAL del cliente: valida stock, lo reserva,
   // copia los items a order_items, y vacía el carrito — todo en una transacción.
-  async createFromCart({ customerId, customerEmail, shippingAddressLine, shippingCity, shippingDepartment, shippingCost = 0 }) {
+  async createFromCart({ customerId, customerEmail, shippingAddressLine, shippingCity, shippingDepartment }) {
     const { items } = await Cart.getContents(customerId);
     if (!items.length) {
       const err = new Error("El carrito está vacío");
@@ -73,7 +60,9 @@ const Order = {
     }
 
     const subtotal = items.reduce((sum, i) => sum + i.unit_price * i.quantity, 0);
-    const total = subtotal + shippingCost;
+    const shippingCost = await getShippingCost({ city: shippingCity, department: shippingDepartment });
+    const netAmount = subtotal + shippingCost; // lo que realmente quieres recibir
+    const { surcharge: paymentSurcharge, total } = calculateTotalWithSurcharge(netAmount);
     const orderNumber = generateOrderNumber();
 
     const conn = await db.getConnection();
@@ -82,10 +71,10 @@ const Order = {
 
       const [orderResult] = await conn.query(
         `INSERT INTO orders
-          (order_number, customer_id, customer_email, status, subtotal, shipping_cost, total,
+          (order_number, customer_id, customer_email, status, subtotal, shipping_cost, payment_surcharge, total,
            shipping_address_line, shipping_city, shipping_department)
-         VALUES (?, ?, ?, 'pending_payment', ?, ?, ?, ?, ?, ?)`,
-        [orderNumber, customerId, customerEmail, subtotal, shippingCost, total,
+         VALUES (?, ?, ?, 'pending_payment', ?, ?, ?, ?, ?, ?, ?)`,
+        [orderNumber, customerId, customerEmail, subtotal, shippingCost, paymentSurcharge, total,
           shippingAddressLine, shippingCity, shippingDepartment]
       );
       const orderId = orderResult.insertId;
@@ -127,9 +116,10 @@ const Order = {
     }
   },
 
-  // Cotiza el carrito actual del cliente SIN crear la orden ni tocar stock:
-  // solo calcula subtotal, envío (según ciudad) y total, para mostrarlos antes del checkout.
-  async quoteFromCart({ customerId, shippingCity }) {
+  // Calcula el desglose (subtotal + envío + recargo = total) SIN crear la
+  // orden todavía — para mostrarlo en el resumen del checkout antes de que
+  // el cliente confirme y se abra Wompi.
+  async quote({ customerId, shippingCity, shippingDepartment }) {
     const { items } = await Cart.getContents(customerId);
     if (!items.length) {
       const err = new Error("El carrito está vacío");
@@ -138,10 +128,11 @@ const Order = {
     }
 
     const subtotal = items.reduce((sum, i) => sum + i.unit_price * i.quantity, 0);
-    const shippingCost = calcularCostoEnvio(shippingCity);
-    const total = subtotal + shippingCost;
+    const shippingCost = await getShippingCost({ city: shippingCity, department: shippingDepartment });
+    const netAmount = subtotal + shippingCost;
+    const { surcharge: paymentSurcharge, total } = calculateTotalWithSurcharge(netAmount);
 
-    return { subtotal, shippingCost, total };
+    return { subtotal, shippingCost, paymentSurcharge, total };
   },
 
   // Venta registrada manualmente por el admin (mostrador/local físico) — a diferencia
