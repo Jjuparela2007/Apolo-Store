@@ -148,7 +148,7 @@ export default function ProductForm() {
 
         <div className="space-y-6">
           <div className="bg-white rounded-xl p-6 space-y-4">
-            <h2 className="font-medium text-apolo-navy">Precios y SKU</h2>
+            <h2 className="font-medium text-apolo-navy">Precios e ID producto</h2>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs text-apolo-steel mb-1 block">Precio Base ($)</label>
@@ -170,7 +170,7 @@ export default function ProductForm() {
               </div>
             </div>
             <div>
-              <label className="text-xs text-apolo-steel mb-1 block">SKU</label>
+              <label className="text-xs text-apolo-steel mb-1 block">ID Producto</label>
               <input
                 required
                 value={form.sku}
