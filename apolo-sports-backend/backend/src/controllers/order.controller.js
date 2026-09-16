@@ -54,10 +54,14 @@ const listOrders = asyncHandler(async (req, res) => {
 });
 
 // POST /api/admin/orders/manual  (protegido) — registrar una venta del local físico.
-// body: { items: [{ variantId, quantity }], paymentMethod, walkInCustomerName?, walkInCustomerPhone? }
+// body: { items: [{ variantId, quantity }], paymentMethod, customerEmail, customerName?, customerPhone? }
+// El correo es obligatorio: se usa para buscar al cliente en el sistema (y vincularle
+// la venta a su historial) o, si no existe, crear uno nuevo automáticamente.
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const createManualSale = asyncHandler(async (req, res) => {
-  requireFields(req.body, ["items", "paymentMethod"]);
-  const { items, paymentMethod, walkInCustomerName, walkInCustomerPhone } = req.body;
+  requireFields(req.body, ["items", "paymentMethod", "customerEmail"]);
+  const { items, paymentMethod, customerEmail, customerName, customerPhone } = req.body;
 
   if (!Array.isArray(items) || items.length === 0) {
     const err = new Error("Agrega al menos un producto a la venta");
@@ -69,9 +73,14 @@ const createManualSale = asyncHandler(async (req, res) => {
     err.status = 400;
     throw err;
   }
+  if (!EMAIL_REGEX.test(customerEmail)) {
+    const err = new Error("El correo del cliente no es válido");
+    err.status = 400;
+    throw err;
+  }
 
   const order = await Order.createManualSale({
-    items, paymentMethod, walkInCustomerName, walkInCustomerPhone, adminId: req.admin.id,
+    items, paymentMethod, customerEmail, customerName, customerPhone, adminId: req.admin.id,
   });
 
   res.status(201).json({ order });

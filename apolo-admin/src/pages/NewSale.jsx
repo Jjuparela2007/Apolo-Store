@@ -21,6 +21,7 @@ export default function NewSale() {
 
   const [items, setItems] = useState([]); // { variantId, productName, size, color, unitPrice, quantity, stock }
   const [paymentMethod, setPaymentMethod] = useState("efectivo");
+  const [customerEmail, setCustomerEmail] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
 
@@ -80,17 +81,26 @@ export default function NewSale() {
       setError("Agrega al menos un producto antes de registrar la venta.");
       return;
     }
+    if (!customerEmail.trim()) {
+      setError("El correo del cliente es obligatorio.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
       const order = await createManualSale({
         items: items.map((i) => ({ variantId: i.variantId, quantity: i.quantity })),
         paymentMethod,
-        walkInCustomerName: customerName || undefined,
-        walkInCustomerPhone: customerPhone || undefined,
+        customerEmail: customerEmail.trim(),
+        customerName: customerName || undefined,
+        customerPhone: customerPhone || undefined,
       });
-      setSuccess(order.order_number);
+      setSuccess({
+        orderNumber: order.order_number,
+        isNewCustomer: order.is_new_customer,
+      });
       setItems([]);
+      setCustomerEmail("");
       setCustomerName("");
       setCustomerPhone("");
       setResults([]);
@@ -195,6 +205,20 @@ export default function NewSale() {
               </select>
             </div>
             <div>
+              <label className="text-xs text-apolo-steel mb-1 block">Correo del cliente</label>
+              <input
+                type="email"
+                required
+                value={customerEmail}
+                onChange={(e) => setCustomerEmail(e.target.value)}
+                placeholder="cliente@correo.com"
+                className="w-full border border-apolo-navy/20 rounded-lg px-3 py-2 text-sm"
+              />
+              <p className="text-[11px] text-apolo-steel mt-1">
+                Si ya está registrado, la venta se guarda en su historial. Si no, se le crea una cuenta.
+              </p>
+            </div>
+            <div>
               <label className="text-xs text-apolo-steel mb-1 block">Nombre del cliente (opcional)</label>
               <input
                 value={customerName}
@@ -214,7 +238,8 @@ export default function NewSale() {
             {error && <p className="text-sm text-red-600">{error}</p>}
             {success && (
               <p className="text-sm text-green-600 font-medium">
-                ✓ Venta registrada: {success}. El stock ya quedó descontado.
+                ✓ Venta registrada: {success.orderNumber}. El stock ya quedó descontado.
+                {success.isNewCustomer && " Se creó una cuenta nueva para el cliente."}
               </p>
             )}
 

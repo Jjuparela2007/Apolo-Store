@@ -1,3 +1,5 @@
+const crypto = require("crypto");
+const bcrypt = require("bcryptjs");
 const db = require("../config/db");
 const Cart = require("./Cart");
 const ProductVariant = require("./ProductVariant");
@@ -148,19 +150,52 @@ const Order = {
   // de createFromCart, no viene de un carrito de cliente: el admin elige los productos
   // directo. Queda pagada de inmediato (no pasa por Wompi) y descuenta stock igual que
   // cualquier otra venta, con el mismo control de concurrencia (FOR UPDATE).
+  // El correo es obligatorio: si ya existe un cliente con ese correo, la venta queda
+  // vinculada a su historial (customer_id); si no existe, se crea un cliente nuevo con
+  // un password aleatorio (no se le informa al cliente — puede entrar luego con
+  // "olvidé mi contraseña" si quiere ver su historial en la tienda online).
   // items: [{ variantId, quantity }]
-  async createManualSale({ items, paymentMethod, walkInCustomerName, walkInCustomerPhone, adminId }) {
+  async createManualSale({ items, paymentMethod, customerEmail, customerName, customerPhone, adminId }) {
     if (!items || items.length === 0) {
       const err = new Error("Agrega al menos un producto a la venta");
       err.status = 400;
       throw err;
     }
+    if (!customerEmail) {
+      const err = new Error("El correo del cliente es obligatorio");
+      err.status = 400;
+      throw err;
+    }
 
+    const normalizedEmail = customerEmail.trim().toLowerCase();
     const orderNumber = generateOrderNumber();
 
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
+
+      // FOR UPDATE evita que dos ventas simultáneas con el mismo correo nuevo
+      // terminen creando dos clientes duplicados.
+      let isNewCustomer = false;
+      const [[existingCustomer]] = await conn.query(
+        `SELECT id FROM customers WHERE email = ? FOR UPDATE`,
+        [normalizedEmail]
+      );
+
+      let customerId;
+      if (existingCustomer) {
+        customerId = existingCustomer.id;
+      } else {
+        isNewCustomer = true;
+        const randomPassword = crypto.randomBytes(32).toString("hex");
+        const passwordHash = bcrypt.hashSync(randomPassword, 10);
+        const [customerResult] = await conn.query(
+          `INSERT INTO customers (email, password_hash, full_name, phone)
+           VALUES (?, ?, ?, ?)`,
+          [normalizedEmail, passwordHash, customerName || "Cliente mostrador", customerPhone || null]
+        );
+        customerId = customerResult.insertId;
+      }
 
       let subtotal = 0;
       const resolvedItems = [];
@@ -195,8 +230,8 @@ const Order = {
         `INSERT INTO orders
           (order_number, customer_id, customer_email, walk_in_customer_name, walk_in_customer_phone,
            status, channel, subtotal, shipping_cost, total)
-         VALUES (?, NULL, NULL, ?, ?, 'paid', 'local', ?, 0, ?)`,
-        [orderNumber, walkInCustomerName || null, walkInCustomerPhone || null, subtotal, subtotal]
+         VALUES (?, ?, ?, ?, ?, 'paid', 'local', ?, 0, ?)`,
+        [orderNumber, customerId, normalizedEmail, customerName || null, customerPhone || null, subtotal, subtotal]
       );
       const orderId = orderResult.insertId;
 
@@ -223,7 +258,8 @@ const Order = {
       );
 
       await conn.commit();
-      return this.findById(orderId);
+      const order = await this.findById(orderId);
+      return { ...order, is_new_customer: isNewCustomer };
     } catch (err) {
       await conn.rollback();
       throw err;
