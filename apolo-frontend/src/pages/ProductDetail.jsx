@@ -117,9 +117,19 @@ export default function ProductDetail() {
       <div>
         <p className="text-sm text-apolo-steel mb-1">{product.category_name}</p>
         <h1 className="font-display font-bold text-4xl text-apolo-navy mb-3">{product.name}</h1>
-        <p className="text-2xl font-semibold text-apolo-navy mb-6">{formatPrice(price)}</p>
+        <div className="flex items-baseline gap-3 mb-6">
+          <p className="text-2xl font-semibold text-apolo-navy">{formatPrice(price)}</p>
+          {product.offer_price && (
+            <p className="text-lg text-apolo-steel line-through">{formatPrice(product.base_price)}</p>
+          )}
+        </div>
 
         {product.short_description && <p className="text-apolo-steel mb-6">{product.short_description}</p>}
+
+        <div className="text-sm text-apolo-steel mb-6 space-y-1">
+          {product.brand && <p><span className="font-medium text-apolo-navy">Marca:</span> {product.brand}</p>}
+          {product.sku && <p><span className="font-medium text-apolo-navy">SKU:</span> {product.sku}</p>}
+        </div>
 
         {colors.length > 0 && (
           <div className="mb-6">
