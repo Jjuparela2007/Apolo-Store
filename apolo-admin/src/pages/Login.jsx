@@ -36,7 +36,7 @@ export default function Login() {
 
       <div className="relative z-10 w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <Logo className="h-14 w-14 mb-3" />
+          <Logo className="h-14 w-auto mb-3" />
           <h1 className="font-display font-bold text-2xl text-white tracking-wide">APOLO SPORTS</h1>
           <p className="text-white/50 text-sm">Admin Panel</p>
         </div>
