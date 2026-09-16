@@ -73,7 +73,7 @@ export default function Login() {
             <div>
               <label className="text-xs text-white/60 mb-1.5 block">Correo electrónico</label>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-apolo-navy/40">
                   <MailIcon />
                 </span>
                 <input
@@ -90,7 +90,7 @@ export default function Login() {
             <div>
               <label className="text-xs text-white/60 mb-1.5 block">Contraseña</label>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-apolo-navy/40">
                   <LockIcon />
                 </span>
                 <input
@@ -104,7 +104,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-apolo-navy/40 hover:text-apolo-navy/70 transition-colors"
                   aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                 >
                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}
