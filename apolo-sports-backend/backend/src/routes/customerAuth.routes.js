@@ -1,10 +1,20 @@
 const express = require("express");
 const router = express.Router();
-const { register, login, forgotPassword, resetPassword, getMe, updateMe, changePassword } = require("../controllers/customerAuth.controller");
+const {
+  register,
+  login,
+  loginWithGoogle,
+  forgotPassword,
+  resetPassword,
+  getMe,
+  updateMe,
+  changePassword,
+} = require("../controllers/customerAuth.controller");
 const { requireCustomerAuth } = require("../middleware/auth.middleware");
 
 router.post("/register", register);
 router.post("/login", login);
+router.post("/google", loginWithGoogle);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 

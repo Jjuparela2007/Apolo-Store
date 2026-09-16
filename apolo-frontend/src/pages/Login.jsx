@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -26,6 +27,19 @@ export default function Login() {
       setTimeout(() => navigate(location.state?.from || "/"), 5000);
     } catch (err) {
       setError(err.response?.data?.error || "No pudimos iniciar sesión.");
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const customer = await loginWithGoogle(credentialResponse.credential);
+      setSuccess(customer.fullName);
+      setTimeout(() => navigate(location.state?.from || "/"), 5000);
+    } catch (err) {
+      setError(err.response?.data?.error || "No pudimos iniciar sesión con Google.");
       setLoading(false);
     }
   };
@@ -63,6 +77,22 @@ export default function Login() {
           <p className="text-sm">Tu sesión expiró. Inicia sesión de nuevo para continuar.</p>
         </div>
       )}
+
+      <div className="flex justify-center mb-4">
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={() => setError("No pudimos iniciar sesión con Google.")}
+          text="continue_with"
+          shape="pill"
+          width="320"
+        />
+      </div>
+
+      <div className="flex items-center gap-3 my-6">
+        <div className="flex-1 h-px bg-apolo-navy/10" />
+        <span className="text-xs text-apolo-steel">o</span>
+        <div className="flex-1 h-px bg-apolo-navy/10" />
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <input

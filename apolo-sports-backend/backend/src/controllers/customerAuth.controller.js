@@ -1,10 +1,13 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { OAuth2Client } = require("google-auth-library");
 const Customer = require("../models/Customer");
 const PasswordReset = require("../models/PasswordReset");
 const email = require("../services/email.service");
 const { asyncHandler } = require("../middleware/error.middleware");
 const { requireFields, validateEmail, validatePasswordStrength } = require("../middleware/validate.middleware");
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 function signCustomerToken(customer) {
   return jwt.sign(
@@ -42,7 +45,8 @@ const login = asyncHandler(async (req, res) => {
   requireFields(req.body, ["email", "password"]);
 
   const customer = await Customer.findByEmail(rawEmail.trim().toLowerCase());
-  if (!customer) {
+  if (!customer || !customer.password_hash) {
+    // Sin password_hash = cuenta creada solo con Google; no puede entrar con contraseña.
     const err = new Error("El correo o la contraseña no son correctos. Inténtalo nuevamente.");
     err.status = 401;
     throw err;
@@ -62,6 +66,61 @@ const login = asyncHandler(async (req, res) => {
   });
 });
 
+// POST /api/auth/google
+// Recibe el id_token (credential) que genera el botón de Google en el frontend,
+// lo verifica contra Google, y crea o reutiliza el cliente correspondiente.
+const loginWithGoogle = asyncHandler(async (req, res) => {
+  const { credential } = req.body;
+  requireFields(req.body, ["credential"]);
+
+  let payload;
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    payload = ticket.getPayload();
+  } catch (err) {
+    const e = new Error("No se pudo verificar la sesión de Google.");
+    e.status = 401;
+    throw e;
+  }
+
+  const { email: googleEmail, name, email_verified } = payload;
+  if (!email_verified) {
+    const err = new Error("Tu correo de Google no está verificado.");
+    err.status = 401;
+    throw err;
+  }
+
+  const normalizedEmail = googleEmail.trim().toLowerCase();
+  let customer = await Customer.findByEmail(normalizedEmail);
+
+  if (customer && customer.auth_provider === "local") {
+    // Ya existe una cuenta creada con contraseña para este correo.
+    // No la fusionamos automáticamente: el usuario debe entrar con su contraseña.
+    const err = new Error("Ya existe una cuenta con este correo. Inicia sesión con tu contraseña.");
+    err.status = 409;
+    throw err;
+  }
+
+  if (!customer) {
+    customer = await Customer.create({
+      email: normalizedEmail,
+      passwordHash: null,
+      fullName: name,
+      phone: null,
+      authProvider: "google",
+    });
+  }
+
+  const token = signCustomerToken(customer);
+  res.json({
+    token,
+    customer: { id: customer.id, email: customer.email, fullName: customer.full_name },
+  });
+});
+
 // POST /api/auth/forgot-password
 // Siempre responde 200 con el mismo mensaje, exista o no la cuenta — así no se puede
 // usar este endpoint para averiguar qué correos están registrados.
@@ -70,7 +129,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
   requireFields(req.body, ["email"]);
 
   const customer = await Customer.findByEmail(rawEmail.trim().toLowerCase());
-  if (customer) {
+  if (customer && customer.password_hash) {
     const token = await PasswordReset.createToken({ accountType: "customer", accountId: customer.id });
     const resetUrl = `${process.env.FRONTEND_URL}/restablecer-contrasena?token=${token}`;
     await email.sendPasswordResetEmail({ to: customer.email, resetUrl });
@@ -147,6 +206,12 @@ const changePassword = asyncHandler(async (req, res) => {
   validatePasswordStrength(newPassword);
 
   const fullCustomer = await Customer.findByEmail(req.customer.email);
+  if (!fullCustomer.password_hash) {
+    const err = new Error("Esta cuenta inició sesión con Google y no tiene contraseña configurada.");
+    err.status = 400;
+    throw err;
+  }
+
   const validPassword = await bcrypt.compare(currentPassword, fullCustomer.password_hash);
   if (!validPassword) {
     const err = new Error("La contraseña actual no es correcta.");
@@ -160,4 +225,13 @@ const changePassword = asyncHandler(async (req, res) => {
   res.json({ message: "Contraseña actualizada correctamente." });
 });
 
-module.exports = { register, login, forgotPassword, resetPassword, getMe, updateMe, changePassword };
+module.exports = {
+  register,
+  login,
+  loginWithGoogle,
+  forgotPassword,
+  resetPassword,
+  getMe,
+  updateMe,
+  changePassword,
+};

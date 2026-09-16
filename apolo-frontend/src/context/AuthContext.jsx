@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback } from "react";
-import { loginCustomer, registerCustomer } from "../api/auth";
+import { loginCustomer, registerCustomer, loginCustomerWithGoogle } from "../api/auth";
 
 const AuthContext = createContext(null);
 
@@ -24,6 +24,14 @@ export function AuthProvider({ children }) {
     return c;
   }, []);
 
+  // Login con Google: recibe el credential (id_token) que entrega el botón de Google
+  // y lo manda al backend, que lo verifica y devuelve token + customer igual que el login normal.
+  const loginWithGoogle = useCallback(async (credential) => {
+    const { token, customer: c } = await loginCustomerWithGoogle({ credential });
+    persistSession(token, c);
+    return c;
+  }, []);
+
   // A propósito NO inicia sesión automáticamente: solo crea la cuenta.
   // El usuario debe iniciar sesión manualmente después, desde /login.
   const register = useCallback(async (data) => {
@@ -44,7 +52,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ customer, isAuthenticated: !!customer, login, register, logout, updateSession }}>
+    <AuthContext.Provider
+      value={{ customer, isAuthenticated: !!customer, login, loginWithGoogle, register, logout, updateSession }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
@@ -35,33 +36,35 @@ function Layout({ children }) {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <CartProvider>
-          <WishlistProvider>
-            <ScrollToTop />
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/categoria/:slug" element={<Category />} />
-                <Route path="/destacados" element={<Featured />} />
-                <Route path="/buscar" element={<Category />} />
-                <Route path="/producto/:slug" element={<ProductDetail />} />
-                <Route path="/carrito" element={<Cart />} />
-                <Route path="/favoritos" element={<Favorites />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/registro" element={<Register />} />
-                <Route path="/olvide-contrasena" element={<ForgotPassword />} />
-                <Route path="/restablecer-contrasena" element={<ResetPassword />} />
-                <Route path="/mi-cuenta" element={<Account />} />
-                <Route path="/mis-pedidos" element={<MyOrders />} />
-                <Route path="/pedido/:id" element={<OrderConfirmation />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Layout>
-          </WishlistProvider>
-        </CartProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+      <BrowserRouter>
+        <AuthProvider>
+          <CartProvider>
+            <WishlistProvider>
+              <ScrollToTop />
+              <Layout>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/categoria/:slug" element={<Category />} />
+                  <Route path="/destacados" element={<Featured />} />
+                  <Route path="/buscar" element={<Category />} />
+                  <Route path="/producto/:slug" element={<ProductDetail />} />
+                  <Route path="/carrito" element={<Cart />} />
+                  <Route path="/favoritos" element={<Favorites />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/registro" element={<Register />} />
+                  <Route path="/olvide-contrasena" element={<ForgotPassword />} />
+                  <Route path="/restablecer-contrasena" element={<ResetPassword />} />
+                  <Route path="/mi-cuenta" element={<Account />} />
+                  <Route path="/mis-pedidos" element={<MyOrders />} />
+                  <Route path="/pedido/:id" element={<OrderConfirmation />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Layout>
+            </WishlistProvider>
+          </CartProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </GoogleOAuthProvider>
   );
 }
