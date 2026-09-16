@@ -72,7 +72,23 @@ export default function Register() {
           </button>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && (
+          <div className="text-sm text-red-600">
+            <p>{error}</p>
+            {error.toLowerCase().includes("ya existe una cuenta") && (
+              <p className="mt-1 text-apolo-steel">
+                <Link to="/login" className="text-apolo-blue hover:underline">
+                  Inicia sesión
+                </Link>{" "}
+                si ya la creaste, o{" "}
+                <Link to="/olvide-contrasena" className="text-apolo-blue hover:underline">
+                  recupera tu contraseña
+                </Link>{" "}
+                si no la recuerdas.
+              </p>
+            )}
+          </div>
+        )}
 
         <button
           type="submit"
