@@ -43,7 +43,7 @@ const FAQS = [
 const STORE_ADDRESS = "CRA 47 # 59C 39 SUR, Bogotá, Colombia";
 
 // Número de WhatsApp de la tienda — formato wa.me, con indicativo de Colombia (57).
-const WHATSAPP_LINK = "https://wa.me/573208821751";
+const WHATSAPP_LINK = "https://wa.me/573144912703";
 
 export default function Home() {
   const [featured, setFeatured] = useState([]);
@@ -213,14 +213,32 @@ export default function Home() {
       </section>
 
       {/* Botón flotante de WhatsApp — visible en toda la página de inicio */}
+      <style>{`
+        @keyframes whatsapp-pulse-ring {
+          0% { transform: scale(0.9); opacity: 0.7; }
+          70% { transform: scale(1.6); opacity: 0; }
+          100% { transform: scale(1.6); opacity: 0; }
+        }
+        @keyframes whatsapp-bounce-soft {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+        .whatsapp-btn { animation: whatsapp-bounce-soft 2.4s ease-in-out infinite; }
+        .whatsapp-ring {
+          animation: whatsapp-pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+      `}</style>
       <a
         href={WHATSAPP_LINK}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Escríbenos por WhatsApp"
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-[#25D366] shadow-lg flex items-center justify-center hover:scale-105 transition-transform"
+        className="whatsapp-btn fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-[#25D366] shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
       >
-        <WhatsAppIcon />
+        <span className="whatsapp-ring absolute inset-0 rounded-full bg-[#25D366]" />
+        <span className="relative">
+          <WhatsAppIcon />
+        </span>
       </a>
     </div>
   );
