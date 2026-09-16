@@ -22,6 +22,21 @@ const createOrder = asyncHandler(async (req, res) => {
   res.status(201).json({ order });
 });
 
+// POST /api/orders/quote  (cotiza el pedido sin crearlo — totales/envío antes del checkout)
+// NOTA: asume que existe Order.quoteFromCart en el modelo. Si no existe todavía,
+// dime qué debe devolver la cotización (solo total+envío, o desglose de impuestos, etc.)
+const quoteOrder = asyncHandler(async (req, res) => {
+  requireFields(req.body, ["shippingAddressLine", "shippingCity", "shippingDepartment"]);
+  const { shippingAddressLine, shippingCity, shippingDepartment, shippingCost } = req.body;
+
+  const quote = await Order.quoteFromCart({
+    customerId: req.customer.id,
+    shippingAddressLine, shippingCity, shippingDepartment, shippingCost,
+  });
+
+  res.json({ quote });
+});
+
 // GET /api/orders/:id  (el cliente consulta el estado de su propia orden)
 const getOrder = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
@@ -112,4 +127,4 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   res.json({ order });
 });
 
-module.exports = { createOrder, getOrder, listMyOrders, listOrders, getOrderAdmin, updateOrderStatus, createManualSale };
+module.exports = { createOrder, getOrder, listMyOrders, listOrders, getOrderAdmin, updateOrderStatus, createManualSale, quoteOrder };
