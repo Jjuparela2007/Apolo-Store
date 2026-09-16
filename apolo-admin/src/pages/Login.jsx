@@ -31,65 +31,80 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-apolo-navy flex items-center justify-center px-6 relative overflow-hidden">
-      <div className="absolute w-[500px] h-[500px] rounded-full bg-apolo-blue/20 blur-3xl -top-40 -right-20" />
-      <div className="absolute w-[400px] h-[400px] rounded-full bg-apolo-blue/10 blur-3xl bottom-0 left-0" />
+      <div className="absolute w-[600px] h-[600px] rounded-full bg-apolo-blue/20 blur-3xl -top-52 -right-32" />
+      <div className="absolute w-[450px] h-[450px] rounded-full bg-apolo-blue/10 blur-3xl -bottom-20 -left-20" />
 
-      <div className="relative z-10 w-full max-w-sm">
-        <div className="flex flex-col items-center mb-8">
-          <Logo className="h-14 w-auto mb-3" />
-          <h1 className="font-display font-bold text-2xl text-white tracking-wide">APOLO SPORTS</h1>
-          <p className="text-white/50 text-sm">Admin Panel</p>
+      <div className="relative z-10 w-full max-w-md">
+        <div className="flex flex-col items-center mb-10">
+          <div className="relative mb-5">
+            <div aria-hidden className="absolute -inset-4 rounded-full bg-apolo-blue/20 blur-2xl" />
+            <Logo className="relative h-20 w-auto drop-shadow-[0_4px_16px_rgba(0,0,0,0.35)]" />
+          </div>
+          <h1 className="font-display font-bold text-3xl text-white tracking-wide">APOLO SPORTS</h1>
+          <div className="flex items-center gap-2.5 mt-2">
+            <span className="h-px w-7 bg-apolo-blue-light/40" />
+            <p className="text-white/50 text-sm">Panel administrativo</p>
+            <span className="h-px w-7 bg-apolo-blue-light/40" />
+          </div>
         </div>
 
         {success ? (
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm text-center">
-            <div className="w-14 h-14 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center mx-auto mb-4">
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-10 backdrop-blur-md shadow-2xl shadow-black/40 text-center">
+            <div className="w-16 h-16 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center mx-auto mb-5">
               <CheckIcon />
             </div>
-            <h2 className="text-white font-medium text-lg mb-1">¡Bienvenido, {success}!</h2>
+            <h2 className="text-white font-medium text-xl mb-1.5">¡Bienvenido, {success}!</h2>
             <p className="text-white/60 text-sm">Entrando al panel…</p>
           </div>
         ) : (
           <form
             onSubmit={handleSubmit}
-            className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm space-y-4"
+            className="bg-white/5 border border-white/10 rounded-3xl p-10 backdrop-blur-md shadow-2xl shadow-black/40 space-y-5"
           >
-            <h2 className="text-white font-medium text-lg mb-2">Iniciar Sesión</h2>
+            <h2 className="text-white font-medium text-xl mb-1">Iniciar sesión</h2>
 
             {sessionExpired && (
-              <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-300 rounded-lg px-3 py-2 text-xs">
+              <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-300 rounded-lg px-3 py-2.5 text-xs">
                 <ClockIcon />
                 <span>Tu sesión expiró. Inicia sesión de nuevo.</span>
               </div>
             )}
 
             <div>
-              <label className="text-xs text-white/60 mb-1 block">Correo Electrónico</label>
-              <input
-                required
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="w-full bg-white/10 border border-white/10 rounded-lg px-3 py-2.5 text-white placeholder-white/30 outline-none focus:border-apolo-blue"
-                placeholder="admin@apolosports.com"
-              />
+              <label className="text-xs text-white/60 mb-1.5 block">Correo electrónico</label>
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40">
+                  <MailIcon />
+                </span>
+                <input
+                  required
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className="w-full bg-white/10 border border-white/10 rounded-xl pl-10 pr-3 py-3 text-white placeholder-white/30 outline-none focus:border-apolo-blue focus:bg-white/[0.14] transition-colors"
+                  placeholder="admin@apolosports.com"
+                />
+              </div>
             </div>
 
             <div>
-              <label className="text-xs text-white/60 mb-1 block">Contraseña</label>
+              <label className="text-xs text-white/60 mb-1.5 block">Contraseña</label>
               <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40">
+                  <LockIcon />
+                </span>
                 <input
                   required
                   type={showPassword ? "text" : "password"}
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="w-full bg-white/10 border border-white/10 rounded-lg px-3 py-2.5 pr-10 text-white placeholder-white/30 outline-none focus:border-apolo-blue"
+                  className="w-full bg-white/10 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-white placeholder-white/30 outline-none focus:border-apolo-blue focus:bg-white/[0.14] transition-colors"
                   placeholder="••••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors"
                   aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                 >
                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}
@@ -108,9 +123,9 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-apolo-blue hover:bg-apolo-blue-light disabled:opacity-50 text-white font-semibold py-3 rounded-full transition-colors mt-2"
+              className="w-full bg-apolo-blue hover:bg-apolo-blue-light disabled:opacity-50 text-white font-semibold py-3.5 rounded-full transition-colors mt-2"
             >
-              {loading ? "Ingresando…" : "Iniciar Sesión"}
+              {loading ? "Ingresando…" : "Iniciar sesión"}
             </button>
           </form>
         )}
@@ -119,6 +134,22 @@ export default function Login() {
   );
 }
 
+function MailIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="2" y="4" width="20" height="16" rx="2.5" />
+      <path d="m3 6.5 9 6 9-6" />
+    </svg>
+  );
+}
+function LockIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="4" y="10.5" width="16" height="10.5" rx="2" />
+      <path d="M7.5 10.5V7a4.5 4.5 0 0 1 9 0v3.5" />
+    </svg>
+  );
+}
 function EyeIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
