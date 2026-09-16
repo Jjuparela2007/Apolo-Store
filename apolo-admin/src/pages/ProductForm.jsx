@@ -315,6 +315,11 @@ function ImagesSection({ product, onUpdated }) {
 function VariantsSection({ product, onUpdated }) {
   const [form, setForm] = useState({ size: "", color: "", colorHex: "#334155", stock: 0 });
   const [error, setError] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({ size: "", color: "", colorHex: "#334155", stock: 0 });
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [rowError, setRowError] = useState({}); // { [variantId]: mensaje }
 
   const refresh = async () => onUpdated(await getProduct(product.id));
 
@@ -332,19 +337,60 @@ function VariantsSection({ product, onUpdated }) {
     }
   };
 
-  const handleStockChange = async (variantId, stock) => {
-    await updateVariant(variantId, { stock: Number(stock) });
-    refresh();
-  };
-
   const handleColorHexChange = async (variantId, colorHex) => {
     await updateVariant(variantId, { colorHex });
     refresh();
   };
 
+  const startEdit = (v) => {
+    setEditingId(v.id);
+    setEditForm({ size: v.size, color: v.color, colorHex: v.color_hex || "#334155", stock: v.stock });
+    setRowError((prev) => ({ ...prev, [v.id]: null }));
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+  };
+
+  const saveEdit = async (variantId) => {
+    setSavingEdit(true);
+    setRowError((prev) => ({ ...prev, [variantId]: null }));
+    try {
+      await updateVariant(variantId, {
+        size: editForm.size,
+        color: editForm.color || "Único",
+        colorHex: editForm.colorHex,
+        stock: Number(editForm.stock),
+      });
+      setEditingId(null);
+      refresh();
+    } catch (err) {
+      setRowError((prev) => ({ ...prev, [variantId]: err.response?.data?.error || "No pudimos guardar los cambios." }));
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
   const handleRemove = async (variantId) => {
-    await deleteVariant(variantId);
-    refresh();
+    if (!confirm("¿Eliminar esta variante? Esta acción no se puede deshacer.")) return;
+    setDeletingId(variantId);
+    setRowError((prev) => ({ ...prev, [variantId]: null }));
+    try {
+      await deleteVariant(variantId);
+      refresh();
+    } catch (err) {
+      // Si la variante ya tiene movimientos de inventario asociados (ventas, ajustes, etc.),
+      // el backend rechaza el borrado por la foreign key. En ese caso, se guía al usuario
+      // a usar Editar en vez de forzar un borrado que rompería el historial.
+      const status = err.response?.status;
+      const backendMsg = err.response?.data?.error;
+      const message = status === 409 || status === 400
+        ? backendMsg || "Esta variante tiene movimientos de inventario asociados y no se puede eliminar. Usa \"Editar\" para modificarla en su lugar."
+        : backendMsg || "No pudimos eliminar la variante.";
+      setRowError((prev) => ({ ...prev, [variantId]: message }));
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
@@ -362,33 +408,92 @@ function VariantsSection({ product, onUpdated }) {
             </tr>
           </thead>
           <tbody>
-            {product.variants.map((v) => (
-              <tr key={v.id} className="border-b border-apolo-navy/5">
-                <td className="py-2 font-medium text-apolo-navy">{v.size}</td>
-                <td className="py-2">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={v.color_hex || "#334155"}
-                      onChange={(e) => handleColorHexChange(v.id, e.target.value)}
-                      title="Cambiar el color mostrado para esta variante"
-                      className="w-6 h-6 rounded-full border border-apolo-navy/20 p-0 cursor-pointer overflow-hidden"
-                    />
-                    {v.color}
-                  </div>
-                </td>
-                <td className="py-2">
-                  <input
-                    type="number" min="0" defaultValue={v.stock}
-                    onBlur={(e) => handleStockChange(v.id, e.target.value)}
-                    className="w-20 border border-apolo-navy/20 rounded px-2 py-1"
-                  />
-                </td>
-                <td className="py-2 text-right">
-                  <button type="button" onClick={() => handleRemove(v.id)} className="text-red-600 text-xs hover:underline">Eliminar</button>
-                </td>
-              </tr>
-            ))}
+            {product.variants.map((v) => {
+              const isEditing = editingId === v.id;
+              return (
+                <tr key={v.id} className="border-b border-apolo-navy/5 align-top">
+                  {isEditing ? (
+                    <>
+                      <td className="py-2 pr-2">
+                        <input
+                          value={editForm.size}
+                          onChange={(e) => setEditForm({ ...editForm, size: e.target.value })}
+                          className="w-16 border border-apolo-navy/20 rounded px-2 py-1"
+                        />
+                      </td>
+                      <td className="py-2 pr-2">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={editForm.colorHex}
+                            onChange={(e) => setEditForm({ ...editForm, colorHex: e.target.value })}
+                            title="Tono mostrado en la tienda"
+                            className="w-6 h-6 rounded-full border border-apolo-navy/20 p-0 cursor-pointer overflow-hidden shrink-0"
+                          />
+                          <input
+                            value={editForm.color}
+                            onChange={(e) => setEditForm({ ...editForm, color: e.target.value })}
+                            className="w-full border border-apolo-navy/20 rounded px-2 py-1"
+                          />
+                        </div>
+                      </td>
+                      <td className="py-2 pr-2">
+                        <input
+                          type="number" min="0"
+                          value={editForm.stock}
+                          onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })}
+                          className="w-20 border border-apolo-navy/20 rounded px-2 py-1"
+                        />
+                      </td>
+                      <td className="py-2 text-right whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={() => saveEdit(v.id)}
+                          disabled={savingEdit}
+                          className="text-apolo-blue text-xs font-medium hover:underline disabled:opacity-50 mr-3"
+                        >
+                          {savingEdit ? "Guardando…" : "Guardar"}
+                        </button>
+                        <button type="button" onClick={cancelEdit} className="text-apolo-steel text-xs hover:underline">Cancelar</button>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="py-2 font-medium text-apolo-navy">{v.size}</td>
+                      <td className="py-2">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={v.color_hex || "#334155"}
+                            onChange={(e) => handleColorHexChange(v.id, e.target.value)}
+                            title="Cambiar el color mostrado para esta variante"
+                            className="w-6 h-6 rounded-full border border-apolo-navy/20 p-0 cursor-pointer overflow-hidden"
+                          />
+                          {v.color}
+                        </div>
+                      </td>
+                      <td className="py-2 text-apolo-navy">{v.stock}</td>
+                      <td className="py-2 text-right whitespace-nowrap">
+                        <button type="button" onClick={() => startEdit(v)} className="text-apolo-blue text-xs font-medium hover:underline mr-3">Editar</button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemove(v.id)}
+                          disabled={deletingId === v.id}
+                          className="text-red-600 text-xs hover:underline disabled:opacity-50"
+                        >
+                          {deletingId === v.id ? "…" : "Eliminar"}
+                        </button>
+                      </td>
+                    </>
+                  )}
+                  {rowError[v.id] && (
+                    <td colSpan={4} className="pb-2">
+                      <p className="text-xs text-red-600">{rowError[v.id]}</p>
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       )}

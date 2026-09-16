@@ -79,8 +79,22 @@ const updateVariant = asyncHandler(async (req, res) => {
 
 // DELETE /api/admin/products/variants/:variantId  (protegido)
 const deleteVariant = asyncHandler(async (req, res) => {
-  await ProductVariant.remove(req.params.variantId);
-  res.status(204).send();
+  try {
+    await ProductVariant.remove(req.params.variantId);
+    res.status(204).send();
+  } catch (err) {
+    // La variante ya tiene movimientos de inventario asociados (ventas, ajustes, etc.)
+    // y la FK de inventory_movements impide borrarla. En vez de un 500 genérico,
+    // se devuelve un mensaje accionable para que el admin edite en vez de eliminar.
+    if (err.code === "ER_ROW_IS_REFERENCED_2") {
+      const friendlyErr = new Error(
+        "Esta variante tiene movimientos de inventario registrados y no se puede eliminar. Edítala en su lugar."
+      );
+      friendlyErr.status = 409;
+      throw friendlyErr;
+    }
+    throw err;
+  }
 });
 
 // POST /api/admin/products/:id/images  (protegido) — multipart/form-data, campo "images" (hasta 5)
