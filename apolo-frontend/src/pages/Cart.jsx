@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { createOrder, quoteOrder } from "../api/cart";
@@ -33,9 +33,23 @@ function openWompiWidget({ signature, reference, amountInCents, publicKey, onFin
 
 const DEPARTMENTS = getDepartments();
 
-// Animación de entrada para el anuncio de envío gratis. Va como <style> suelto
-// para no depender de que el tailwind.config del proyecto tenga keyframes
-// custom — si prefieres, muévelo a tu CSS global y borra este bloque.
+const CONFETTI_COLORS = ["#10b981", "#34d399", "#fbbf24", "#f472b6", "#60a5fa", "#a78bfa"];
+
+function generateConfettiPieces(count = 28) {
+  return Array.from({ length: count }, (_, i) => ({
+    id: `${Date.now()}-${i}`,
+    left: Math.random() * 100,
+    color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+    delay: Math.random() * 0.25,
+    duration: 1 + Math.random() * 0.6,
+    drift: Math.round((Math.random() - 0.5) * 70), // px de deriva horizontal
+    rotation: Math.floor(Math.random() * 360),
+  }));
+}
+
+// Animación de entrada del anuncio + confeti. Va como <style> suelto para no
+// depender de que el tailwind.config del proyecto tenga keyframes custom —
+// si prefieres, muévelo a tu CSS global y borra este bloque.
 const FREE_SHIPPING_BANNER_STYLES = `
 @keyframes freeShippingPop {
   0% { opacity: 0; transform: translateY(-8px) scale(0.95); }
@@ -44,6 +58,22 @@ const FREE_SHIPPING_BANNER_STYLES = `
 }
 .free-shipping-banner {
   animation: freeShippingPop 0.5s ease-out;
+}
+.confetti-piece {
+  position: absolute;
+  top: -10px;
+  width: 6px;
+  height: 10px;
+  border-radius: 1px;
+  opacity: 0;
+  pointer-events: none;
+  animation-name: confettiFall;
+  animation-timing-function: ease-in;
+  animation-fill-mode: forwards;
+}
+@keyframes confettiFall {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0deg); }
+  100% { opacity: 0; transform: translate(var(--confetti-drift), 80px) rotate(var(--confetti-rotation)); }
 }
 `;
 
@@ -89,6 +119,21 @@ export default function Cart() {
   // ciudad", donde igual queda un monto por la comisión de Wompi) — así que
   // esto es un indicador confiable de que aplicó la promo.
   const isFreeShipping = quote?.shippingCost === 0;
+
+  // Dispara el confeti solo en la transición de "no aplica" a "sí aplica" —
+  // no en cada refresco de la cotización mientras la promo sigue activa.
+  const wasFreeShippingRef = useRef(false);
+  const [confettiPieces, setConfettiPieces] = useState([]);
+
+  useEffect(() => {
+    if (isFreeShipping && !wasFreeShippingRef.current) {
+      setConfettiPieces(generateConfettiPieces());
+      const timeout = setTimeout(() => setConfettiPieces([]), 1600);
+      wasFreeShippingRef.current = true;
+      return () => clearTimeout(timeout);
+    }
+    wasFreeShippingRef.current = isFreeShipping;
+  }, [isFreeShipping]);
 
   if (!isAuthenticated) {
     return (
@@ -177,8 +222,22 @@ export default function Cart() {
         <h2 className="font-medium text-apolo-navy mb-4">Resumen</h2>
 
         {isFreeShipping && (
-          <div className="free-shipping-banner mb-4 rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-center">
-            <p className="text-sm font-semibold text-emerald-700">
+          <div className="free-shipping-banner relative overflow-hidden mb-4 rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-center">
+            {confettiPieces.map((p) => (
+              <span
+                key={p.id}
+                className="confetti-piece"
+                style={{
+                  left: `${p.left}%`,
+                  backgroundColor: p.color,
+                  animationDelay: `${p.delay}s`,
+                  animationDuration: `${p.duration}s`,
+                  "--confetti-drift": `${p.drift}px`,
+                  "--confetti-rotation": `${p.rotation}deg`,
+                }}
+              />
+            ))}
+            <p className="relative z-10 text-sm font-semibold text-emerald-700">
               🎉 ¡Felicidades! Tu compra superó los $300.000 — tu envío es gratis
             </p>
           </div>
