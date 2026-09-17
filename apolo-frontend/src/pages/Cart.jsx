@@ -1,9 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { createOrder, quoteOrder } from "../api/cart";
 import { getCheckoutSignature } from "../api/payments";
+import { getDepartments, getCitiesByDepartment } from "../data/colombia-locations";
 
 function formatPrice(value) {
   return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(value);
@@ -30,6 +31,8 @@ function openWompiWidget({ signature, reference, amountInCents, publicKey, onFin
   checkout.open((result) => onFinish({ transaction: result?.transaction }));
 }
 
+const DEPARTMENTS = getDepartments();
+
 export default function Cart() {
   const { items, subtotal, updateItem, removeItem, refresh } = useCart();
   const { isAuthenticated } = useAuth();
@@ -40,18 +43,30 @@ export default function Cart() {
   const [error, setError] = useState(null);
   const [quote, setQuote] = useState(null);
 
-  // Pide el desglose (subtotal + envío + recargo = total) cada vez que cambian
-  // el carrito o la ciudad/departamento — así el envío se calcula de verdad en
-  // cuanto el cliente termina de escribirlos, y el total que ve aquí es el
-  // mismo que se le va a cobrar en Wompi. Se calcula en el backend, nunca
-  // confiamos en un shippingCost que mande el cliente.
+  // Ciudades disponibles según el departamento elegido (select en cascada).
+  const availableCities = useMemo(
+    () => (form.shippingDepartment ? getCitiesByDepartment(form.shippingDepartment) : []),
+    [form.shippingDepartment]
+  );
+
+  const handleDepartmentChange = (departamento) => {
+    // Al cambiar de departamento, la ciudad que tenía seleccionada ya no aplica.
+    setForm((prev) => ({ ...prev, shippingDepartment: departamento, shippingCity: "" }));
+  };
+
+  // Pide el desglose (subtotal + envío = total) cada vez que cambian el
+  // carrito o la ciudad — así el envío se calcula de verdad en cuanto el
+  // cliente termina de elegirla, y el total que ve aquí es el mismo que se le
+  // va a cobrar en Wompi. Se calcula en el backend, nunca confiamos en un
+  // shippingCost que mande el cliente. El backend ya devuelve el envío con
+  // la comisión de la pasarela incluida, así que aquí no hay nada aparte que mostrar.
   useEffect(() => {
     if (!isAuthenticated || items.length === 0) return;
     const timeout = setTimeout(() => {
       quoteOrder({ shippingCity: form.shippingCity, shippingDepartment: form.shippingDepartment })
         .then(setQuote)
         .catch(() => setQuote(null));
-    }, 400); // debounce mientras el cliente sigue escribiendo
+    }, 400); // debounce mientras el cliente sigue eligiendo
     return () => clearTimeout(timeout);
   }, [isAuthenticated, items, subtotal, form.shippingCity]);
 
@@ -148,16 +163,10 @@ export default function Cart() {
           <span className="text-apolo-steel">Envío</span>
           <span className="font-medium text-apolo-navy">
             {form.shippingCity
-              ? (quote ? formatPrice(quote.shippingCost) : "Calculando…")
-              : "Ingresa tu ciudad"}
+              ? (quote ? (quote.shippingCost === 0 ? "Gratis" : formatPrice(quote.shippingCost)) : "Calculando…")
+              : "Elige tu ciudad"}
           </span>
         </div>
-        {quote && (
-          <div className="flex justify-between text-sm mb-2">
-            <span className="text-apolo-steel">Recargo por método de pago</span>
-            <span className="font-medium text-apolo-navy">{formatPrice(quote.paymentSurcharge)}</span>
-          </div>
-        )}
         <div className="flex justify-between text-sm font-semibold text-apolo-navy border-t border-apolo-navy/10 mt-2 pt-2 mb-4">
           <span>Total</span>
           <span>{quote ? formatPrice(quote.total) : formatPrice(subtotal)}</span>
@@ -171,20 +180,31 @@ export default function Cart() {
             onChange={(e) => setForm({ ...form, shippingAddressLine: e.target.value })}
             className="w-full border border-apolo-navy/20 rounded-lg px-3 py-2 text-sm"
           />
-          <input
+          <select
             required
-            placeholder="Ciudad"
+            value={form.shippingDepartment}
+            onChange={(e) => handleDepartmentChange(e.target.value)}
+            className="w-full border border-apolo-navy/20 rounded-lg px-3 py-2 text-sm text-apolo-navy"
+          >
+            <option value="" disabled>Departamento</option>
+            {DEPARTMENTS.map((dep) => (
+              <option key={dep} value={dep}>{dep}</option>
+            ))}
+          </select>
+          <select
+            required
+            disabled={!form.shippingDepartment}
             value={form.shippingCity}
             onChange={(e) => setForm({ ...form, shippingCity: e.target.value })}
-            className="w-full border border-apolo-navy/20 rounded-lg px-3 py-2 text-sm"
-          />
-          <input
-            required
-            placeholder="Departamento"
-            value={form.shippingDepartment}
-            onChange={(e) => setForm({ ...form, shippingDepartment: e.target.value })}
-            className="w-full border border-apolo-navy/20 rounded-lg px-3 py-2 text-sm"
-          />
+            className="w-full border border-apolo-navy/20 rounded-lg px-3 py-2 text-sm text-apolo-navy disabled:opacity-50"
+          >
+            <option value="" disabled>
+              {form.shippingDepartment ? "Ciudad" : "Elige primero el departamento"}
+            </option>
+            {availableCities.map((city) => (
+              <option key={city} value={city}>{city}</option>
+            ))}
+          </select>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
 

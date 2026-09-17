@@ -3,8 +3,7 @@ const bcrypt = require("bcryptjs");
 const db = require("../config/db");
 const Cart = require("./Cart");
 const ProductVariant = require("./ProductVariant");
-const { getShippingCost } = require("../services/shipping.service");
-const { calculateTotalWithSurcharge } = require("../services/pricing.service");
+const { calculateOrderBreakdown, toCustomerQuote } = require("../services/quote.service");
 
 function generateOrderNumber() {
   const year = new Date().getFullYear();
@@ -71,9 +70,10 @@ const Order = {
     }
 
     const subtotal = items.reduce((sum, i) => sum + i.unit_price * i.quantity, 0);
-    const shippingCost = await getShippingCost({ city: shippingCity, department: shippingDepartment });
-    const netAmount = subtotal + shippingCost; // lo que realmente quieres recibir
-    const { surcharge: paymentSurcharge, total } = calculateTotalWithSurcharge(netAmount);
+    // Guardamos los montos REALES en la orden (envío real y comisión de Wompi por
+    // separado) — lo que el cliente vio escondido en una sola línea es solo para el
+    // checkout, pero tus registros deben reflejar la plata real.
+    const { shippingCost, paymentSurcharge, total } = calculateOrderBreakdown({ subtotal, shippingCity });
     const orderNumber = generateOrderNumber();
 
     const conn = await db.getConnection();
@@ -127,9 +127,10 @@ const Order = {
     }
   },
 
-  // Calcula el desglose (subtotal + envío + recargo = total) SIN crear la
-  // orden todavía — para mostrarlo en el resumen del checkout antes de que
-  // el cliente confirme y se abra Wompi.
+  // Calcula el desglose SIN crear la orden todavía — para mostrarlo en el
+  // resumen del checkout antes de que el cliente confirme y se abra Wompi.
+  // Esta es la versión "de cara al cliente": el recargo de Wompi va escondido
+  // dentro de shippingCost, nunca aparece como línea aparte.
   async quote({ customerId, shippingCity, shippingDepartment }) {
     const { items } = await Cart.getContents(customerId);
     if (!items.length) {
@@ -139,11 +140,8 @@ const Order = {
     }
 
     const subtotal = items.reduce((sum, i) => sum + i.unit_price * i.quantity, 0);
-    const shippingCost = await getShippingCost({ city: shippingCity, department: shippingDepartment });
-    const netAmount = subtotal + shippingCost;
-    const { surcharge: paymentSurcharge, total } = calculateTotalWithSurcharge(netAmount);
-
-    return { subtotal, shippingCost, paymentSurcharge, total };
+    const breakdown = calculateOrderBreakdown({ subtotal, shippingCity });
+    return toCustomerQuote(breakdown);
   },
 
   // Venta registrada manualmente por el admin (mostrador/local físico) — a diferencia

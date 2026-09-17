@@ -1,5 +1,4 @@
 // services/shipping.service.js
-const db = require("../config/db");
 
 function normalize(str) {
   return (str || "")
@@ -9,23 +8,25 @@ function normalize(str) {
     .trim();
 }
 
-// Decide la tarifa SOLO por la ciudad (normalizada, sin importar tildes ni
-// mayúsculas) — así "Bogotá", "bogota", "BOGOTÁ" o "bogotá" siempre matchean.
-// Si no hay ciudad todavía (formulario a medio llenar), retorna 0.
-async function getShippingCost({ city }) {
+const SHIPPING_BOGOTA = 15000;
+const SHIPPING_OTHER = 35000;
+const FREE_SHIPPING_THRESHOLD = 300000; // subtotal (sin recargos) por encima del cual el envío es gratis
+
+// Decide la tarifa de envío según ciudad y subtotal:
+// - Si el subtotal (sin recargo de pago) supera $300.000, el envío es gratis.
+// - Si no, $15.000 para Bogotá, $35.000 para cualquier otra ciudad.
+// - Si no hay ciudad todavía (formulario a medio llenar), retorna 0.
+function getShippingCost({ city, subtotal }) {
   if (!city) return 0;
+  if (subtotal > FREE_SHIPPING_THRESHOLD) return 0;
 
   const isBogota = normalize(city) === "bogota";
-  const targetDepartment = isBogota ? "Bogotá D.C." : "_default";
-
-  const [[rate]] = await db.query(
-    `SELECT cost FROM shipping_rates WHERE department = ? LIMIT 1`,
-    [targetDepartment]
-  );
-  if (rate) return Number(rate.cost);
-
-  // Respaldo por si borraste la fila _default por accidente
-  return 0;
+  return isBogota ? SHIPPING_BOGOTA : SHIPPING_OTHER;
 }
 
-module.exports = { getShippingCost };
+module.exports = {
+  getShippingCost,
+  SHIPPING_BOGOTA,
+  SHIPPING_OTHER,
+  FREE_SHIPPING_THRESHOLD,
+};
