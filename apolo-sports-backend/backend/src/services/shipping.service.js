@@ -8,7 +8,7 @@ function normalize(str) {
     .trim();
 }
 
-const SHIPPING_BOGOTA = 15000;
+const SHIPPING_BOGOTA = 12000;
 const SHIPPING_OTHER = 20000;
 const FREE_SHIPPING_THRESHOLD = 300000; // subtotal (sin recargos) por encima del cual el envío es gratis
 
