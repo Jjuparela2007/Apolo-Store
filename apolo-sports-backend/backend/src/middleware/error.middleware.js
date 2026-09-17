@@ -8,7 +8,13 @@ function errorHandler(err, req, res, next) {
 
   const status = err.status || 500;
   const message = err.status ? err.message : "Error interno del servidor";
-  res.status(status).json({ error: message });
+
+  const body = { error: message };
+  // Algunos errores (como PHONE_REQUIRED) traen un code para que el frontend
+  // pueda reaccionar distinto sin tener que parsear el texto del mensaje.
+  if (err.code) body.code = err.code;
+
+  res.status(status).json(body);
 }
 
 function asyncHandler(fn) {

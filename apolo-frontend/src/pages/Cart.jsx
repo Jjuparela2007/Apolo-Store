@@ -179,6 +179,10 @@ export default function Cart() {
         },
       });
     } catch (err) {
+      if (err.response?.data?.code === "PHONE_REQUIRED") {
+        navigate("/completar-perfil", { state: { from: "/carrito" } });
+        return;
+      }
       setError(err.response?.data?.error || "No pudimos crear tu pedido. Intenta de nuevo.");
     } finally {
       setSubmitting(false);

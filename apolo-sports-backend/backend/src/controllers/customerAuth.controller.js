@@ -20,7 +20,7 @@ function signCustomerToken(customer) {
 // POST /api/auth/register
 const register = asyncHandler(async (req, res) => {
   const { email: rawEmail, password, fullName, phone } = req.body;
-  requireFields(req.body, ["email", "password", "fullName"]);
+  requireFields(req.body, ["email", "password", "fullName", "phone"]);
   validateEmail(rawEmail);
   validatePasswordStrength(password);
 
@@ -118,6 +118,9 @@ const loginWithGoogle = asyncHandler(async (req, res) => {
   res.json({
     token,
     customer: { id: customer.id, email: customer.email, fullName: customer.full_name },
+    // El frontend usa esto para mandar al usuario a completar su teléfono
+    // apenas entra — con Google no hay formulario que lo pida de entrada.
+    needsPhone: !customer.phone,
   });
 });
 

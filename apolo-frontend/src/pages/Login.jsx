@@ -37,7 +37,16 @@ export default function Login() {
     try {
       const customer = await loginWithGoogle(credentialResponse.credential);
       setSuccess(customer.fullName);
-      setTimeout(() => navigate(location.state?.from || "/"), 5000);
+      // Si la cuenta de Google no trae teléfono, lo pedimos antes de mandarlo
+      // a donde iba — createOrder lo va a bloquear igual si se lo saltan.
+      if (customer.needsPhone) {
+        setTimeout(
+          () => navigate("/completar-perfil", { state: { from: location.state?.from || "/" } }),
+          5000
+        );
+      } else {
+        setTimeout(() => navigate(location.state?.from || "/"), 5000);
+      }
     } catch (err) {
       setError(err.response?.data?.error || "No pudimos iniciar sesión con Google.");
       setLoading(false);

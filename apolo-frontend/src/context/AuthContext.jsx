@@ -26,10 +26,14 @@ export function AuthProvider({ children }) {
 
   // Login con Google: recibe el credential (id_token) que entrega el botón de Google
   // y lo manda al backend, que lo verifica y devuelve token + customer igual que el login normal.
+  // El backend también manda needsPhone: true cuando la cuenta (nueva o existente) no tiene
+  // teléfono todavía — lo guardamos dentro del propio customer para que cualquier pantalla
+  // pueda revisar `customer.needsPhone` y mandarlo a completarlo.
   const loginWithGoogle = useCallback(async (credential) => {
-    const { token, customer: c } = await loginCustomerWithGoogle({ credential });
-    persistSession(token, c);
-    return c;
+    const { token, customer: c, needsPhone } = await loginCustomerWithGoogle({ credential });
+    const customerData = { ...c, needsPhone: !!needsPhone };
+    persistSession(token, customerData);
+    return customerData;
   }, []);
 
   // A propósito NO inicia sesión automáticamente: solo crea la cuenta.
@@ -47,6 +51,8 @@ export function AuthProvider({ children }) {
 
   // Cuando el cliente actualiza su perfil (nombre/correo/teléfono), el backend firma
   // un token nuevo (el correo va dentro del JWT) — esto lo guarda sin pasar por login de nuevo.
+  // Si el update trajo teléfono, customerData ya no tiene needsPhone, así que la bandera
+  // queda limpia sola.
   const updateSession = useCallback((token, customerData) => {
     persistSession(token, customerData);
   }, []);

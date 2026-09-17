@@ -47,7 +47,9 @@ export default function Register() {
           className="w-full border border-apolo-navy/20 rounded-lg px-3 py-2"
         />
         <input
-          placeholder="Teléfono (opcional)"
+          required
+          type="tel"
+          placeholder="Teléfono"
           value={form.phone}
           onChange={(e) => setForm({ ...form, phone: e.target.value })}
           className="w-full border border-apolo-navy/20 rounded-lg px-3 py-2"
