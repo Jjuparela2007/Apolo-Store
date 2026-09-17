@@ -9,7 +9,7 @@ function normalize(str) {
 }
 
 const SHIPPING_BOGOTA = 15000;
-const SHIPPING_OTHER = 35000;
+const SHIPPING_OTHER = 20000;
 const FREE_SHIPPING_THRESHOLD = 300000; // subtotal (sin recargos) por encima del cual el envío es gratis
 
 // Decide la tarifa de envío según ciudad y subtotal:
