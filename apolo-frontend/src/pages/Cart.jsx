@@ -33,6 +33,20 @@ function openWompiWidget({ signature, reference, amountInCents, publicKey, onFin
 
 const DEPARTMENTS = getDepartments();
 
+// Animación de entrada para el anuncio de envío gratis. Va como <style> suelto
+// para no depender de que el tailwind.config del proyecto tenga keyframes
+// custom — si prefieres, muévelo a tu CSS global y borra este bloque.
+const FREE_SHIPPING_BANNER_STYLES = `
+@keyframes freeShippingPop {
+  0% { opacity: 0; transform: translateY(-8px) scale(0.95); }
+  60% { opacity: 1; transform: translateY(0) scale(1.02); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.free-shipping-banner {
+  animation: freeShippingPop 0.5s ease-out;
+}
+`;
+
 export default function Cart() {
   const { items, subtotal, updateItem, removeItem, refresh } = useCart();
   const { isAuthenticated } = useAuth();
@@ -70,6 +84,11 @@ export default function Cart() {
     return () => clearTimeout(timeout);
   }, [isAuthenticated, items, subtotal, form.shippingCity]);
 
+  // El backend deja shippingCost en exactamente 0 solo cuando el subtotal
+  // alcanzó el umbral de envío gratis (a diferencia del caso "todavía no hay
+  // ciudad", donde igual queda un monto por la comisión de Wompi) — así que
+  // esto es un indicador confiable de que aplicó la promo.
+  const isFreeShipping = quote?.shippingCost === 0;
 
   if (!isAuthenticated) {
     return (
@@ -154,7 +173,17 @@ export default function Cart() {
       </div>
 
       <div className="bg-apolo-ice rounded-xl p-6 h-fit">
+        <style>{FREE_SHIPPING_BANNER_STYLES}</style>
         <h2 className="font-medium text-apolo-navy mb-4">Resumen</h2>
+
+        {isFreeShipping && (
+          <div className="free-shipping-banner mb-4 rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-center">
+            <p className="text-sm font-semibold text-emerald-700">
+              🎉 ¡Felicidades! Tu compra superó los $300.000 — tu envío es gratis
+            </p>
+          </div>
+        )}
+
         <div className="flex justify-between text-sm mb-2">
           <span className="text-apolo-steel">Subtotal</span>
           <span className="font-medium text-apolo-navy">{formatPrice(quote?.subtotal ?? subtotal)}</span>
