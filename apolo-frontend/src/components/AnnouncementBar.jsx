@@ -1,6 +1,6 @@
 // Franja delgada de promesa/urgencia sobre el header. Cambia el texto aquí cuando
 // tengas una promoción distinta que anunciar — es el único lugar que hay que tocar.
-const MESSAGE = "Envíos gratis en compras superiores a $150.000 en toda Colombia 🚚";
+const MESSAGE = "Envíos gratis en compras superiores a $300.000 en toda Colombia 🚚";
 
 export default function AnnouncementBar() {
   return (
